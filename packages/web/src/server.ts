@@ -1,6 +1,9 @@
 import Fastify from "fastify";
 import dotenv from "dotenv";
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 //import { EntityService } from "@social/bus";
 //import { registerRoutes } from "@social/services";
@@ -8,8 +11,17 @@ import cors from "@fastify/cors";
 
 dotenv.config()
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = Fastify()
 await app.register(cors, { origin: true })
+
+// Serve static files from public directory
+await app.register(fastifyStatic, {
+  root: join(__dirname, "..", "public"),
+  prefix: "/",
+});
 
 // @todo use my config
 const port = Number(process.env.PORT ?? 8080)

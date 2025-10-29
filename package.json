@@ -1,0 +1,17 @@
+{
+  "name": "social-appliance",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix packages/bus run build && npm --prefix packages/services run build && npm --prefix packages/traffic run build && npm --prefix packages/web run build",
+    "dev": "npm --prefix packages/web run dev",
+    "test": "npm -ws run test",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.0",
+    "eslint": "^9.13.0",
+    "@types/node": "^22.7.4"
+  }
+}

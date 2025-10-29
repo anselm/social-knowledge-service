@@ -1,0 +1,13 @@
+tsconfig.tsbuildinfo
+.aider*
+.DS_Store*
+todo.md
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+.DS_Store
+dist/
+coverage/
+.env
+.env.*

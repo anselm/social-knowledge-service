@@ -2,6 +2,9 @@
   "name": "social-appliance",
   "private": false,
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm --prefix packages/bus run build && npm --prefix packages/services run build && npm --prefix packages/traffic run build && npm --prefix packages/web run build",
     "dev": "npm --prefix packages/web run dev",

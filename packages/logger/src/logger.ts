@@ -12,7 +12,12 @@ export class Logger {
       return '';
     }
     
-    const callerLine = stack[3].trim();
+    const callerLineRaw = stack[3];
+    if (!callerLineRaw) {
+      return '';
+    }
+    
+    const callerLine = callerLineRaw.trim();
     // Parse patterns like "at functionName (file:line:col)" or "at file:line:col"
     const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
     if (match) {

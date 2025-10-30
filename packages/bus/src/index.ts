@@ -4,15 +4,21 @@ import {Logger} from '@social/logger'
 // Define types for the observer pattern
 type OnEntityFunction = (blob: any, bus: any) => Promise<any>;
 
-interface OnEntityConfig extends Function {
+interface OnEntityConfig {
 	filter?: string;
 	resolve?: OnEntityFunction;
 	priority?: number;
+	(blob: any, bus: any): Promise<any>;
 }
 
 interface Observer {
 	meta?: { title: string };
 	on_entity: OnEntityFunction | OnEntityConfig;
+}
+
+// Type guard to check if on_entity is a config object with properties
+function isOnEntityConfig(onEntity: OnEntityFunction | OnEntityConfig): onEntity is OnEntityConfig {
+	return 'filter' in onEntity || 'resolve' in onEntity || 'priority' in onEntity;
 }
 
 // @todo debate: could use a richer constructor so that i can have this.observers?
@@ -66,12 +72,12 @@ export class Bus {
 			const onEntity = observer.on_entity
 			
 			// Check if on_entity has a filter property (it's a config object)
-			if(typeof onEntity === 'object' && 'filter' in onEntity && onEntity.filter) {
+			if(isOnEntityConfig(onEntity) && onEntity.filter) {
 				if(!blob.hasOwnProperty(onEntity.filter)) continue
 			}
 			
 			// Determine the function to call
-			const fn = (typeof onEntity === 'object' && 'resolve' in onEntity && onEntity.resolve) 
+			const fn = (isOnEntityConfig(onEntity) && onEntity.resolve) 
 				? onEntity.resolve 
 				: onEntity
 			

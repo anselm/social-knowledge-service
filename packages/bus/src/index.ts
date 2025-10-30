@@ -4,11 +4,10 @@ import {Logger} from '@social/logger'
 // Define types for the observer pattern
 type OnEntityFunction = (blob: any, bus: any) => Promise<any>;
 
-interface OnEntityConfig {
+interface OnEntityConfig extends Function {
 	filter?: string;
 	resolve?: OnEntityFunction;
 	priority?: number;
-	(blob: any, bus: any): Promise<any>;
 }
 
 interface Observer {
@@ -67,12 +66,12 @@ export class Bus {
 			const onEntity = observer.on_entity
 			
 			// Check if on_entity has a filter property (it's a config object)
-			if(typeof onEntity !== 'function' && onEntity.filter) {
+			if(typeof onEntity === 'object' && 'filter' in onEntity && onEntity.filter) {
 				if(!blob.hasOwnProperty(onEntity.filter)) continue
 			}
 			
 			// Determine the function to call
-			const fn = (typeof onEntity !== 'function' && onEntity.resolve) 
+			const fn = (typeof onEntity === 'object' && 'resolve' in onEntity && onEntity.resolve) 
 				? onEntity.resolve 
 				: onEntity
 			

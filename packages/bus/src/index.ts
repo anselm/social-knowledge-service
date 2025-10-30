@@ -1,8 +1,23 @@
 
 import {Logger} from '@social/logger'
 
+// Define types for the observer pattern
+type OnEntityFunction = (blob: any, bus: any) => Promise<any>;
+
+interface OnEntityConfig {
+	filter?: string;
+	resolve?: OnEntityFunction;
+	priority?: number;
+	(blob: any, bus: any): Promise<any>;
+}
+
+interface Observer {
+	meta?: { title: string };
+	on_entity: OnEntityFunction | OnEntityConfig;
+}
+
 // @todo debate: could use a richer constructor so that i can have this.observers?
-const on_entity_register = {
+const on_entity_register: Observer = {
 	meta: {title:"on_entity register"},
 	on_entity: async (blob: any, bus: any) => {
 		// register on_entity handlers
@@ -22,7 +37,7 @@ const on_entity_register = {
 export class Bus {
 
 	// @todo put in the observer?
-	observers = [on_entity_register]
+	observers: Observer[] = [on_entity_register]
 
 	async bus(blob: any) {
 		// ignore?
@@ -47,8 +62,20 @@ export class Bus {
 		const observers = this.observers
 		for(let i = 0;i<observers.length;i++) {
 			const observer = observers[i]
-			if(observer.on_entity.filter && !blob.hasOwnProperty(observer.on_entity.filter)) continue
-			const fn = observer.on_entity.resolve ? observer.on_entity.resolve : observer.on_entity
+			if(!observer) continue
+			
+			const onEntity = observer.on_entity
+			
+			// Check if on_entity has a filter property (it's a config object)
+			if(typeof onEntity === 'object' && 'filter' in onEntity && onEntity.filter) {
+				if(!blob.hasOwnProperty(onEntity.filter)) continue
+			}
+			
+			// Determine the function to call
+			const fn = (typeof onEntity === 'object' && 'resolve' in onEntity && onEntity.resolve) 
+				? onEntity.resolve 
+				: onEntity
+			
 			const results = await fn(blob, this)
 			if(results) return results
 		}

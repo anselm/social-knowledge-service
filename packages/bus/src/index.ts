@@ -67,12 +67,12 @@ export class Bus {
 			const onEntity = observer.on_entity
 			
 			// Check if on_entity has a filter property (it's a config object)
-			if(typeof onEntity === 'object' && 'filter' in onEntity && onEntity.filter) {
+			if(typeof onEntity !== 'function' && onEntity.filter) {
 				if(!blob.hasOwnProperty(onEntity.filter)) continue
 			}
 			
 			// Determine the function to call
-			const fn = (typeof onEntity === 'object' && 'resolve' in onEntity && onEntity.resolve) 
+			const fn = (typeof onEntity !== 'function' && onEntity.resolve) 
 				? onEntity.resolve 
 				: onEntity
 			

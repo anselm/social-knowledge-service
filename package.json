@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm --prefix packages/bus run build && npm --prefix packages/services run build && npm --prefix packages/traffic run build && npm --prefix packages/web run build",
+    "build": "npm --prefix packages/logger run build && npm --prefix packages/bus run build && npm --prefix packages/services run build && npm --prefix packages/traffic run build && npm --prefix packages/web run build",
     "dev": "npm --prefix packages/web run dev",
     "test": "npm -ws run test",
     "lint": "eslint ."

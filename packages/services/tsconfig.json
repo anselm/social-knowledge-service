@@ -5,9 +5,13 @@
     "rootDir": "src",
     "composite": true
   },
-  "references": [{
-    "path": "../logger",
-    "path": "../bus"
-  }],
+  "references": [
+    {
+      "path": "../logger"
+    },
+    {
+      "path": "../bus"
+    }
+  ],
   "include": ["src"]
 }

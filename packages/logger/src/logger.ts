@@ -8,17 +8,21 @@ export class Logger {
     //   at Object.warn/error (...)
     //   at actual caller (...)
     // So we want index 3
-    if (stack && stack.length > 3) {
-      const callerLine = stack[3].trim();
-      // Parse patterns like "at functionName (file:line:col)" or "at file:line:col"
-      const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
-      if (match) {
-        const functionName = match[1] || '<anonymous>';
-        const filePath = match[2];
-        const fileName = filePath.split('/').pop()?.split('\\').pop();
-        return `[${fileName}:${functionName}]`;
-      }
+    if (!stack || stack.length <= 3) {
+      return '';
     }
+    
+    const callerLine = stack[3].trim();
+    // Parse patterns like "at functionName (file:line:col)" or "at file:line:col"
+    const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
+    if (match) {
+      const functionName = match[1] || '<anonymous>';
+      const filePath = match[2];
+      if(!filePath) return ""
+      const fileName = filePath.split('/').pop()?.split('\\').pop();
+      return `[${fileName}:${functionName}]`;
+    }
+    
     return '';
   }
 

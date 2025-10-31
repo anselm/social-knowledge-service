@@ -1,4 +1,5 @@
-import { Logger } from '../utils/logger.js'
+import { Logger } from '@social/logger'
+import { Bus } from './bus.js'
 
 const slug = "orbital/sys/load"
 const title = "loader"
@@ -6,6 +7,18 @@ const description = `Load component loads other assets on demand`
 
 export const isServer = (typeof window === 'undefined') ? true : false
 export const cwd = (typeof process === 'undefined') ? "" : process.cwd()
+
+interface LoaderConfig {
+	index: string;
+	importmaps: Record<string, any>;
+	anchor: string;
+}
+
+interface LoadBlob {
+	load?: string | string[];
+	anchor?: string;
+	[key: string]: any;
+}
 
 //
 // harmonization of paths
@@ -25,18 +38,17 @@ export const cwd = (typeof process === 'undefined') ? "" : process.cwd()
 //		- on a server the cwd does imply the root of the server operation and we want to prevent escaping that frame
 //
 
-const harmonize_resource_path = (scope,blob,resource) => {
+const harmonize_resource_path = (scope: Bus, blob: LoadBlob, resource: string): string | URL | null => {
 
 	// @todo this could be made configurable dynamically
-	if(!scope._loader_config) {
-		scope._loader_config = {
-			index:'index.js',
-			importmaps: {
-			},
-			anchor:""
+	if (!(scope as any)._loader_config) {
+		(scope as any)._loader_config = {
+			index: 'index.js',
+			importmaps: {},
+			anchor: ""
 		}
 	}
-	const config = scope._loader_config
+	const config = (scope as any)._loader_config as LoaderConfig
 
 	// disallow unrecognized or too short
 	if (!resource || typeof resource !== 'string' && !(resource instanceof String) || resource.length < 1) {
@@ -44,29 +56,29 @@ const harmonize_resource_path = (scope,blob,resource) => {
 	}
 
 	// disallow supporting /filename for now completely
-	if(resource[0]=='/') {
-		err(uuid,'not portable to start a resource at an absolute path',resource)
+	if (resource[0] === '/') {
+		Logger.error('not portable to start a resource at an absolute path', resource)
 		return null
 	}
 
 	// allow importing of urls as is
 	const lower = resource.toLowerCase()
-	if( lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('file://') ) {
+	if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('file://')) {
 		return resource
 	}
 
 	// callers may want to inject an anchor for future use generally; as kind of a poor mans importmap
-	if(blob.anchor) config.anchor = blob.anchor
+	if (blob.anchor) config.anchor = blob.anchor
 	let anchor = config.anchor
 
 	// non relative files are import maps - the anchor must be ignored - import() is responsible for these
-	if(resource[0]!='.') {
+	if (resource[0] != '.') {
 		return resource
 	}
 
 	// composit the file and the anchor - URL will strip "../../" and generate a canonical path
-	if(!isServer) {
-		const url = new URL(resource,anchor)
+	if (!isServer) {
+		const url = new URL(resource, anchor)
 		return url
 	}
 
@@ -75,62 +87,65 @@ const harmonize_resource_path = (scope,blob,resource) => {
 
 }
 
-const resolve = async function(blob,bus) {
+const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 
 	// sanity check
-	if(!blob || !blob.load) return
+	if (!blob || !blob.load) return
 
 	// deal with a string or array of strings of files to load
-	let candidates = []
-	if(Array.isArray(blob.load)) {
+	let candidates: string[] = []
+	if (Array.isArray(blob.load)) {
 		candidates = blob.load
-	} else if(typeof blob.load === 'string' || blob.load instanceof String) {
+	} else if (typeof blob.load === 'string' || blob.load instanceof String) {
 		candidates = [blob.load]
 	} else {
-		err(uuid,'unsupported type',blob)
+		Logger.error('unsupported type', blob)
 		return
 	}
 
 	// build a list of found artifacts by loading the candidate files now
-	const found = []
-	for(let candidate of candidates) {
+	const found: any[] = []
+	for (let candidate of candidates) {
 
 		// have to do some work to tidy up real path
-		const resource = harmonize_resource_path(bus,blob,candidate)
-		if(!resource) {
+		const resource = harmonize_resource_path(bus, blob, candidate)
+		if (!resource) {
 			continue
 		}
 
 		// only visit a file once ever - stash visited into bus as a slight hack - local per instance of bus
 		// @todo think of a way to store _loader_visited somewhere else 
-		if(!bus._loader_visited) sys._loader_visited = {}
-		if(bus._loader_visited[resource]) {
-			Logger.warn('already attempted to load once',resource)
+		if (!(bus as any)._loader_visited) {
+			(bus as any)._loader_visited = {}
+		}
+		const resourceStr = resource.toString()
+		if ((bus as any)._loader_visited[resourceStr]) {
+			Logger.warn('already attempted to load once', resourceStr)
 			continue
 		}
-		bus._loader_visited[resource] = resource
+		(bus as any)._loader_visited[resourceStr] = resourceStr
 
 		// mark found objects with the resource path - dealing with returned array collections
-		const inject_metadata = (key,item) => {
-			if(!item) {
-				Logger.err(uuid,'corrupt exports',key)
-			} else if(Array.isArray(null,item)) {
-				item.forEach( inject_metadata )
-			} else if(typeof item === 'object') {
-				item._metadata = { key, anchor:resource }
+		const inject_metadata = (key: string, item: any): void => {
+			if (!item) {
+				Logger.error('corrupt exports', key)
+			} else if (Array.isArray(item)) {
+				item.forEach((subItem) => inject_metadata(key, subItem))
+			} else if (typeof item === 'object') {
+				item._metadata = { key, anchor: resourceStr }
 			}
 		}
 
 		// load all objects
 		try {
-			Logger.warn("loading",resource)
-			const module = await import(resource)
-			for(const [k,v] of Object.entries(module)) {
-				inject_metadata(k,v)
+			Logger.warn("loading", resourceStr)
+			const module = await import(resourceStr)
+			for (const [k, v] of Object.entries(module)) {
+				inject_metadata(k, v)
 				found.push(v)
 			}
-		} catch(e) {
-			Logger.err('unable to load',e)
+		} catch (e) {
+			Logger.error('unable to load', e)
 		}
 
 	}
@@ -147,6 +162,6 @@ const resolve = async function(blob,bus) {
 ///
 
 export const loader = {
-	meta: {slug,title,description},
+	meta: { slug, title, description },
 	on_entity: { filter: 'load', resolve }
 }

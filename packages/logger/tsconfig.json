@@ -6,8 +6,9 @@
     "composite": false,
     "declaration": true,
     "declarationMap": true,
-    "incremental": false
+    "incremental": false,
+    "allowJs": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules", "dist"]
 }

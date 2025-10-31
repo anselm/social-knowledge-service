@@ -3,15 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true
+    "composite": false,
+    "incremental": false,
+    "allowJs": true
   },
-  "references": [
-    {
-      "path": "../logger"
-    },
-    {
-      "path": "../bus"
-    }
-  ],
   "include": ["src"]
 }

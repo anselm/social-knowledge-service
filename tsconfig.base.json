@@ -8,7 +8,7 @@
     "stripInternal": true,
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
-    "allowJs": false,
+    "allowJs": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noErrorTruncation": true,

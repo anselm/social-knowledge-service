@@ -3,12 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true
+    "composite": false,
+    "incremental": false,
+    "allowJs": true
   },
-  "references": [
-    { "path": "../bus" },
-    { "path": "../services" },
-    { "path": "../traffic" }
-  ],
   "include": ["src"]
 }

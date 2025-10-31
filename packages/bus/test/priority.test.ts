@@ -35,11 +35,11 @@ async function testObserverPriority() {
   };
   
   // Register observers
-  await bus.bus(observer2);
-  await bus.bus(observer1);
+  await bus.event(observer2);
+  await bus.event(observer1);
   
   // Publish a test object
-  await bus.bus({ test: true, message: 'Testing priority' });
+  await bus.event({ test: true, message: 'Testing priority' });
   
   // Verify call order
   console.log('Call order:', callOrder);
@@ -68,10 +68,10 @@ async function testArrayUnrolling() {
     }
   };
   
-  await bus.bus(observer);
+  await bus.event(observer);
   
   // Publish an array of objects
-  await bus.bus([
+  await bus.event([
     { message: 'First' },
     { message: 'Second' },
     { message: 'Third' }

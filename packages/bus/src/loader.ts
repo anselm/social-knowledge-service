@@ -151,7 +151,7 @@ const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 	}
 
 	// produce these objects
-	bus.bus(found)
+	bus.event(found)
 }
 
 ///

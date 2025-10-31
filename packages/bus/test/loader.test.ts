@@ -48,10 +48,10 @@ async function testLoaderBasic() {
     const bus = new Bus();
     
     // Register the loader observer
-    await bus.bus(loader);
+    await bus.event(loader);
     
     // Request to load the test module
-    await bus.bus({
+    await bus.event({
       load: testModulePath,
       anchor: process.cwd()
     });
@@ -60,7 +60,7 @@ async function testLoaderBasic() {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Now test if the loaded observer works
-    const result = await bus.bus({
+    const result = await bus.event({
       dynamicTest: 'Hello from dynamic module'
     });
     
@@ -102,10 +102,10 @@ export const testObserver2 = {
     const bus = new Bus();
     
     // Register the loader observer
-    await bus.bus(loader);
+    await bus.event(loader);
     
     // Request to load multiple modules
-    await bus.bus({
+    await bus.event({
       load: [testModulePath, testModule2Path],
       anchor: process.cwd()
     });
@@ -114,7 +114,7 @@ export const testObserver2 = {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Test the second loaded observer
-    const result = await bus.bus({
+    const result = await bus.event({
       secondTest: 'Hello from second module'
     });
     
@@ -140,15 +140,15 @@ async function testLoaderDuplicatePrevention() {
     const bus = new Bus();
     
     // Register the loader observer
-    await bus.bus(loader);
+    await bus.event(loader);
     
     // Load the same module twice
-    await bus.bus({
+    await bus.event({
       load: testModulePath,
       anchor: process.cwd()
     });
     
-    await bus.bus({
+    await bus.event({
       load: testModulePath,
       anchor: process.cwd()
     });

@@ -18,11 +18,11 @@ async function testBasicObserver() {
   };
   
   // Register the observer by passing it through the bus
-  await bus.bus(observer);
+  await bus.event(observer);
   
   // Publish an object
   const testObject = { message: 'Hello from test' };
-  await bus.bus(testObject);
+  await bus.event(testObject);
   
   // Verify
   if (observerCalled && receivedBlob?.message === 'Hello from test') {
@@ -51,10 +51,10 @@ async function testFilteredObserver() {
   };
   
   // Register the observer
-  await bus.bus(observer);
+  await bus.event(observer);
   
   // Publish an object without the filter property (should not trigger)
-  await bus.bus({ message: 'No user property' });
+  await bus.event({ message: 'No user property' });
   
   if (observerCalled) {
     console.log('❌ Test failed: Observer should not have been called');
@@ -62,7 +62,7 @@ async function testFilteredObserver() {
   }
   
   // Publish an object with the filter property (should trigger)
-  await bus.bus({ user: 'Alice', message: 'Has user property' });
+  await bus.event({ user: 'Alice', message: 'Has user property' });
   
   if (observerCalled) {
     console.log('✅ Test passed: Filtered observer was called only for matching objects');
@@ -71,7 +71,7 @@ async function testFilteredObserver() {
   }
 }
 
-async function runTests() {
+async function run Tests() {
   await testBasicObserver();
   await testFilteredObserver();
 }

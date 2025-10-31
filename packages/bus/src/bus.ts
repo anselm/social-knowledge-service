@@ -44,7 +44,7 @@ export class Bus {
 	// @todo put in the observer?
 	observers: Observer[] = [on_entity_register]
 
-	async bus(blob: any) {
+	async event(blob: any) {
 		// ignore?
 		if(!blob || blob == null || blob === undefined) {
 			Logger.error('blob is empty')
@@ -53,7 +53,7 @@ export class Bus {
 		// unroll arrays as a convenience
 		if(Array.isArray(blob)) {
 			for(let i = 0; i < blob.length; i++) {
-				await(this.bus(blob[i]))
+				await(this.event(blob[i]))
 			}
 			return
 		}

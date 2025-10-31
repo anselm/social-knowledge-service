@@ -2,34 +2,35 @@ import { writeSync } from 'fs';
 
 export class Logger {
   static getCallerInfo() {
-    // Capture stack trace synchronously using V8's prepareStackTrace
-    const originalPrepareStackTrace = Error.prepareStackTrace;
-    let callerInfo = '';
+    // Create error and immediately access stack to force synchronous generation
+    const err = new Error();
+    const stackString = err.stack || '';
+    const lines = stackString.split('\n');
     
-    try {
-      Error.prepareStackTrace = (_, stack) => stack;
-      const err = { stack: null } as any;
-      Error.captureStackTrace(err, Logger.getCallerInfo);
-      const stack = err.stack;
-      
-      // Stack is now an array of CallSite objects
-      if (stack && stack.length > 0) {
-        const caller = stack[0]; // First frame is the actual caller
-        const fileName = caller.getFileName();
-        const functionName = caller.getFunctionName() || '<anonymous>';
-        
-        if (fileName) {
-          const shortFileName = fileName.split('/').pop()?.split('\\').pop();
-          callerInfo = `[${shortFileName}:${functionName}]`;
-        }
-      }
-    } catch (e) {
-      // If anything fails, just return empty string
-    } finally {
-      Error.prepareStackTrace = originalPrepareStackTrace;
+    // Stack typically looks like:
+    // Error
+    //   at Object.getCallerInfo (...)
+    //   at Object.warn/error (...)
+    //   at actual caller (...)
+    // So we want index 3
+    if (lines.length <= 3) {
+      return '';
     }
     
-    return callerInfo;
+    const callerLine = lines[3]?.trim() || '';
+    
+    // Parse patterns like "at functionName (file:line:col)" or "at file:line:col"
+    const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
+    if (match) {
+      const functionName = match[1] || '<anonymous>';
+      const filePath = match[2];
+      if (filePath) {
+        const fileName = filePath.split('/').pop()?.split('\\').pop();
+        return `[${fileName}:${functionName}]`;
+      }
+    }
+    
+    return '';
   }
 
   static log(message: string, ...args: any[]) {

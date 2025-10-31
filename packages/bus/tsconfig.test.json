@@ -5,8 +5,5 @@
     "composite": false,
     "incremental": false
   },
-  "references": [{
-    "path": "../logger"
-  }],
   "include": ["test/**/*"]
 }

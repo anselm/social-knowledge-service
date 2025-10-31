@@ -1,4 +1,4 @@
-import { Bus } from '../src/bus.js';
+import { Bus } from '../dist/bus.js';
 
 async function testBasicObserver() {
   console.log('Test: Basic Observer');

@@ -7,5 +7,5 @@
   "references": [{
     "path": "../logger"
   }],
-  "include": ["test/**/*", "src/**/*"]
+  "include": ["test/**/*"]
 }

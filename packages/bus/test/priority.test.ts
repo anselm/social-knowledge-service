@@ -1,4 +1,4 @@
-import { Bus } from '../src/bus.js';
+import { Bus } from '../dist/bus.js';
 
 async function testObserverPriority() {
   console.log('Test: Observer Priority');

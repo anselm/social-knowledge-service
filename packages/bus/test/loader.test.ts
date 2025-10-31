@@ -3,62 +3,20 @@ import { loader } from '../dist/loader.js';
 import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 
-// Create a temporary test module
-const testModuleDir = join(process.cwd(), 'test-modules');
-const testModulePath = join(testModuleDir, 'test-observer.js');
-
-function setupTestModule() {
-  try {
-    mkdirSync(testModuleDir, { recursive: true });
-    
-    const moduleContent = `
-export const testObserver = {
-  meta: { title: 'dynamically loaded observer' },
-  on_entity: async (blob, bus) => {
-    if (blob.dynamicTest) {
-      console.log('Dynamic observer received:', blob.dynamicTest);
-      return { success: true, value: blob.dynamicTest };
-    }
-  }
-};
-`;
-    
-    writeFileSync(testModulePath, moduleContent);
-    console.log('✅ Test module created at:', testModulePath);
-  } catch (e) {
-    console.error('Failed to create test module:', e);
-  }
-}
-
-function cleanupTestModule() {
-  try {
-    rmSync(testModuleDir, { recursive: true, force: true });
-    console.log('✅ Test module cleaned up');
-  } catch (e) {
-    console.error('Failed to cleanup test module:', e);
-  }
-}
-
 async function testLoaderBasic() {
-  console.log('\nTest: Loader Basic Functionality');
-  
-  setupTestModule();
+  console.log('\nTest: Loader Basic Functionality on cwd',process.cwd());
   
   try {
     const bus = new Bus();
-    
+
     // Register the loader observer
     await bus.event(loader);
-    
+
     // Request to load the test module
     await bus.event({
-      load: testModulePath,
-      anchor: process.cwd()
+      load: "./test-data/test-file-1.js",
     });
-    
-    // Give it a moment to load
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // Now test if the loaded observer works
     const result = await bus.event({
       dynamicTest: 'Hello from dynamic module'
@@ -72,52 +30,33 @@ async function testLoaderBasic() {
     }
   } catch (e) {
     console.error('❌ Test failed with error:', e);
-  } finally {
-    cleanupTestModule();
   }
 }
 
 async function testLoaderArray() {
   console.log('\nTest: Loader with Array of Modules');
   
-  setupTestModule();
-  
-  // Create a second test module
-  const testModule2Path = join(testModuleDir, 'test-observer2.js');
-  const moduleContent2 = `
-export const testObserver2 = {
-  meta: { title: 'second dynamically loaded observer' },
-  on_entity: async (blob, bus) => {
-    if (blob.secondTest) {
-      console.log('Second dynamic observer received:', blob.secondTest);
-      return { success: true, value: blob.secondTest, observer: 2 };
-    }
-  }
-};
-`;
-  
   try {
-    writeFileSync(testModule2Path, moduleContent2);
     
     const bus = new Bus();
     
     // Register the loader observer
     await bus.event(loader);
-    
+  
     // Request to load multiple modules
     await bus.event({
-      load: [testModulePath, testModule2Path],
-      anchor: process.cwd()
+      load: "./test-data/test-file-2.js"
     });
     
-    // Give it a moment to load
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await bus.event({
+      load: "./test-data/test-file-1.js"
+    });
+
     // Test the second loaded observer
     const result = await bus.event({
       secondTest: 'Hello from second module'
     });
-    
+
     if (result && result.success && result.observer === 2) {
       console.log('✅ Test passed: Loader successfully loaded multiple modules');
     } else {
@@ -126,16 +65,12 @@ export const testObserver2 = {
     }
   } catch (e) {
     console.error('❌ Test failed with error:', e);
-  } finally {
-    cleanupTestModule();
   }
 }
 
 async function testLoaderDuplicatePrevention() {
   console.log('\nTest: Loader Prevents Duplicate Loading');
-  
-  setupTestModule();
-  
+    
   try {
     const bus = new Bus();
     
@@ -144,18 +79,13 @@ async function testLoaderDuplicatePrevention() {
     
     // Load the same module twice
     await bus.event({
-      load: testModulePath,
-      anchor: process.cwd()
+      load: "./test-data/test-file-1.js"
     });
     
     await bus.event({
-      load: testModulePath,
-      anchor: process.cwd()
+      load: "./test-data/test-file-1.js"
     });
-    
-    // Give it a moment to load
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+      
     // Count how many observers we have (should not have duplicates)
     const observerCount = bus.observers.length;
     console.log('Observer count:', observerCount);
@@ -170,8 +100,6 @@ async function testLoaderDuplicatePrevention() {
     }
   } catch (e) {
     console.error('❌ Test failed with error:', e);
-  } finally {
-    cleanupTestModule();
   }
 }
 

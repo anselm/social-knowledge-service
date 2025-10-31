@@ -79,6 +79,7 @@ const harmonize_resource_path = (scope: Bus, blob: LoadBlob, resource: string): 
 	// composit the file and the anchor - URL will strip "../../" and generate a canonical path
 	if (!isServer) {
 		const url = new URL(resource, anchor)
+		console.log("****** converted",resource,url)
 		return url
 	}
 
@@ -110,6 +111,7 @@ const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 		// have to do some work to tidy up real path
 		const resource = harmonize_resource_path(bus, blob, candidate)
 		if (!resource) {
+			Logger.error("cannot harmonize path",candidate)
 			continue
 		}
 
@@ -125,7 +127,7 @@ const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 		}
 		(bus as any)._loader_visited[resourceStr] = resourceStr
 
-		// mark found objects with the resource path - dealing with returned array collections
+		// helper: mark found objects with the resource path - dealing with returned array collections
 		const inject_metadata = (key: string, item: any): void => {
 			if (!item) {
 				Logger.error('corrupt exports', key)
@@ -138,7 +140,7 @@ const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 
 		// load all objects
 		try {
-			Logger.warn("loading", resourceStr)
+			Logger.log("loading",resourceStr,"from cwd",process.cwd())
 			const module = await import(resourceStr)
 			for (const [k, v] of Object.entries(module)) {
 				inject_metadata(k, v)

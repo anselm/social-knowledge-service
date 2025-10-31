@@ -35,7 +35,7 @@ const on_entity_register: Observer = {
 		} else {
 			bus.observers.push(blob)
 		}
-		Logger.log("... saving observer", blob)
+		//Logger.log("... saving observer", blob)
 	}
 }
 

@@ -1,12 +1,14 @@
-# bus
+# BUS
 
 Bus implements a variation on a pub-sub architecture with these qualities:
 
-- a single method or interface packages up the entire request including the pattern to match - this is more flexible since the pattern doesn't have to be baked into the source code explicitly.
+- a single method or interface packages up the entire request including the pattern to match - right now bus has one method bus.event().
+
+- this approach allows entire collections of observers and events to be loaded up from separate files - in turn this allows declarative collections of events - and forms a way to build systems out of parts as a whole.
 
 ## Usage
 
-### Basic Example
+### Basic Observer (observe everything)
 
 ```typescript
 import { Bus } from '@social/bus';
@@ -114,7 +116,7 @@ stream.on('data', chunk => ...);
 stream.on('end', () => ...);
 ```
 
-Dahl's specific design philosophy, which he discusses in his early talks, is that Node should have non-blocking concurrency. So there's a tiny pub/sub scheme called EventEmitter and synchronous dispatching and no dependencies. EventEmitter2 takes this much further and is worth looking at as well. Projects like NestJS wrap EventEmitter2 using decorators.
+Dahl's specific design philosophy, which he discusses in his early talks, is that Node should have non-blocking concurrency. So there's a tiny pub/sub scheme called EventEmitter and synchronous dispatching and no dependencies. EventEmitter2 takes this much further and is worth looking at as well. Projects like NestJS wrap EventEmitter2 using decorators. See https://www.npmjs.com/package/eventemitter2 .
 
 - Browsers DOM events (addEventListener / dispatchEvent) also use an event model.
 
@@ -126,4 +128,4 @@ Dahl's specific design philosophy, which he discusses in his early talks, is tha
 
 - Java popularized the Delegation Event Model with strongly-typed listeners; Qt made signals/slots idiomatic C++ for decoupled notifications. All of that normalized "register a handler for an event name/signature; fire it later." 
 
-- You may also want to look at CRDTs and event replay systems of various flavors.
+- You may also want to look at CRDTs and event sourcing / event replay systems of various flavors.

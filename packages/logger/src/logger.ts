@@ -49,23 +49,13 @@ export class Logger {
   }
 
   static err(message: string, error?: any, ...args: any[]) {
-    const caller = Logger.getCallerInfo();
-    console.error(`❌ ${caller} ${message}`, ...args);
-    if (error?.stack) {
-      console.error(error.stack);
-    } else if (error) {
-      console.error(error);
-    }
+    const caller = Logger.getCallerInfo()
+    console.log(`❌ ${caller} ${message}`, ...args, error ? error.stack : "");
   }
 
   static error(message: string, error?: any, ...args: any[]) {
-    const caller = Logger.getCallerInfo();
-    console.error(`❌ ${caller} ${message}`, ...args);
-    if (error?.stack) {
-      console.error(error.stack);
-    } else if (error) {
-      console.error(error);
-    }
+    const caller = Logger.getCallerInfo()
+    console.log(`❌ ${caller} ${message}`, ...args, error ? error.stack : "");
   }
 
   static debug(message: string, ...args: any[]) {

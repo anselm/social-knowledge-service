@@ -1,5 +1,7 @@
 import { Logger } from '@social/logger'
 import { Bus } from './bus.js'
+import { fileURLToPath } from 'url'
+import { dirname, resolve as pathResolve } from 'path'
 
 const slug = "orbital/sys/load"
 const title = "loader"
@@ -79,13 +81,16 @@ const harmonize_resource_path = (scope: Bus, blob: LoadBlob, resource: string): 
 	// composit the file and the anchor - URL will strip "../../" and generate a canonical path
 	if (!isServer) {
 		const url = new URL(resource, anchor)
-		console.log("****** converted",resource,url)
 		return url
 	}
 
-	// server with anchor - no safety checks @todo prevent escaping the root folder of cwd()
-	return anchor + resource
+	// server with anchor - resolve relative to anchor
+	if (anchor) {
+		return pathResolve(anchor, resource)
+	}
 
+	// server without anchor - resolve relative to cwd
+	return pathResolve(cwd, resource)
 }
 
 const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {

@@ -2,11 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist-test",
-    "rootDir": "test",
     "composite": false
   },
   "references": [{
     "path": "../logger"
   }],
-  "include": ["test/**/*"]
+  "include": ["test/**/*", "src/**/*"]
 }

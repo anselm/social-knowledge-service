@@ -53,7 +53,7 @@ async function testObserverPriority() {
 }
 
 async function testArrayUnrolling() {
-  Logger.info('\nTest: Array Unrolling');
+  Logger.info('Test: Array Unrolling');
   
   const bus = new Bus();
   const receivedMessages: string[] = [];

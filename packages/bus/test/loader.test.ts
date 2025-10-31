@@ -3,7 +3,7 @@ import { loader } from '../dist/loader.js';
 import { Logger } from '@social/logger';
 
 async function testLoaderBasic() {
-  Logger.info('\nTest: Loader Basic Functionality on cwd', process.cwd());
+  Logger.info('Test: Loader Basic Functionality on cwd ' + process.cwd());
   
   try {
     const bus = new Bus();
@@ -33,7 +33,7 @@ async function testLoaderBasic() {
 }
 
 async function testLoaderArray() {
-  Logger.info('\nTest: Loader with Array of Modules');
+  Logger.info('Test: Loader with Array of Modules');
   
   try {
     
@@ -64,7 +64,7 @@ async function testLoaderArray() {
 }
 
 async function testLoaderDuplicatePrevention() {
-  Logger.info('\nTest: Loader Prevents Duplicate Loading');
+  Logger.info('Test: Loader Prevents Duplicate Loading');
     
   try {
     const bus = new Bus();

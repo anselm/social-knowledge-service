@@ -34,7 +34,7 @@ async function testBasicObserver() {
 }
 
 async function testFilteredObserver() {
-  Logger.info('\nTest: Filtered Observer');
+  Logger.info('Test: Filtered Observer');
   
   const bus = new Bus();
   let observerCalled = false;

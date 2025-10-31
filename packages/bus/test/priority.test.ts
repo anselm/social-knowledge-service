@@ -1,0 +1,97 @@
+import { Bus } from '../src/bus.js';
+
+async function testObserverPriority() {
+  console.log('Test: Observer Priority');
+  
+  const bus = new Bus();
+  const callOrder: string[] = [];
+  
+  // Register observer with priority 1 (will be inserted at index 1)
+  const observer1 = {
+    meta: { title: 'priority 1 observer' },
+    on_entity: {
+      priority: 1,
+      resolve: async (blob: any, bus: any) => {
+        if (blob.test) {
+          callOrder.push('observer1');
+          console.log('Observer 1 called');
+        }
+      }
+    }
+  };
+  
+  // Register observer with priority 2 (will be inserted at index 2)
+  const observer2 = {
+    meta: { title: 'priority 2 observer' },
+    on_entity: {
+      priority: 2,
+      resolve: async (blob: any, bus: any) => {
+        if (blob.test) {
+          callOrder.push('observer2');
+          console.log('Observer 2 called');
+        }
+      }
+    }
+  };
+  
+  // Register observers
+  await bus.bus(observer2);
+  await bus.bus(observer1);
+  
+  // Publish a test object
+  await bus.bus({ test: true, message: 'Testing priority' });
+  
+  // Verify call order
+  console.log('Call order:', callOrder);
+  
+  if (callOrder[0] === 'observer1' && callOrder[1] === 'observer2') {
+    console.log('✅ Test passed: Observers called in priority order');
+  } else {
+    console.log('❌ Test failed: Observers not called in correct priority order');
+  }
+}
+
+async function testArrayUnrolling() {
+  console.log('\nTest: Array Unrolling');
+  
+  const bus = new Bus();
+  const receivedMessages: string[] = [];
+  
+  // Register an observer
+  const observer = {
+    meta: { title: 'array test observer' },
+    on_entity: async (blob: any, bus: any) => {
+      if (blob.message) {
+        receivedMessages.push(blob.message);
+        console.log('Received message:', blob.message);
+      }
+    }
+  };
+  
+  await bus.bus(observer);
+  
+  // Publish an array of objects
+  await bus.bus([
+    { message: 'First' },
+    { message: 'Second' },
+    { message: 'Third' }
+  ]);
+  
+  // Verify all messages were received
+  if (receivedMessages.length === 3 && 
+      receivedMessages[0] === 'First' &&
+      receivedMessages[1] === 'Second' &&
+      receivedMessages[2] === 'Third') {
+    console.log('✅ Test passed: Array was unrolled and all items processed');
+  } else {
+    console.log('❌ Test failed: Array unrolling did not work correctly');
+    console.log('Received:', receivedMessages);
+  }
+}
+
+async function runTests() {
+  await testObserverPriority();
+  await testArrayUnrolling();
+}
+
+runTests().catch(console.error);

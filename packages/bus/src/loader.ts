@@ -51,7 +51,7 @@ const harmonize_resource_path = (scope: Bus, blob: LoadBlob, resource: string): 
 	const config = (scope as any)._loader_config as LoaderConfig
 
 	// disallow unrecognized or too short
-	if (!resource || typeof resource !== 'string' && !(resource instanceof String) || resource.length < 1) {
+	if (!resource || typeof resource !== 'string' || resource.length < 1) {
 		return null
 	}
 
@@ -96,7 +96,7 @@ const resolve = async function (blob: LoadBlob, bus: Bus): Promise<void> {
 	let candidates: string[] = []
 	if (Array.isArray(blob.load)) {
 		candidates = blob.load
-	} else if (typeof blob.load === 'string' || blob.load instanceof String) {
+	} else if (typeof blob.load === 'string') {
 		candidates = [blob.load]
 	} else {
 		Logger.error('unsupported type', blob)

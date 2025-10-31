@@ -39,7 +39,8 @@ export class Logger {
     const now = new Date();
     const seq = sequenceNumber++;
     const ms = now.getTime();
-    return `[${ms}.${seq.toString().padStart(6, '0')}]`;
+    const pid = process.pid;
+    return `[${ms}.${pid}.${seq.toString().padStart(6, '0')}]`;
   }
 
   static log(message: string, ...args: any[]) {

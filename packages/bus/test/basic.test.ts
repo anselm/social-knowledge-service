@@ -71,7 +71,7 @@ async function testFilteredObserver() {
   }
 }
 
-async function run Tests() {
+async function runTests() {
   await testBasicObserver();
   await testFilteredObserver();
 }

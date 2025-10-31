@@ -11,6 +11,8 @@
     "allowJs": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
   }
 }

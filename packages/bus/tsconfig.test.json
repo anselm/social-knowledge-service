@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist-test",
-    "composite": false
+    "composite": false,
+    "incremental": false
   },
   "references": [{
     "path": "../logger"

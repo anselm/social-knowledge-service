@@ -13,6 +13,7 @@
     "noUncheckedIndexedAccess": true,
     "noErrorTruncation": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "incremental": false
   }
 }

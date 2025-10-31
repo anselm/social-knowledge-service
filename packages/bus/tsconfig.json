@@ -8,5 +8,5 @@
   "references": [{
     "path": "../logger"
   }],
-  "include": ["src"]
+  "include": ["src/**/*"]
 }

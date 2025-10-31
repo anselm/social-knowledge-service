@@ -2,6 +2,11 @@ import { writeSync } from 'fs';
 
 let sequenceNumber = 0;
 
+// ANSI color codes
+const YELLOW = '\x1b[33m';
+const RED = '\x1b[31m';
+const RESET = '\x1b[0m';
+
 export class Logger {
   static getCallerInfo() {
     // Create error and immediately access stack to force synchronous generation
@@ -50,21 +55,21 @@ export class Logger {
   static log(message: string, ...args: any[]) {
     const timestamp = Logger.getTimestamp();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    const output = `${timestamp} ℹ️  ${message} ${formatted}\n`;
+    const output = `ℹ️  ${timestamp} ${message} ${formatted}\n`;
     writeSync(1, output);
   }
 
   static info(message: string, ...args: any[]) {
     const timestamp = Logger.getTimestamp();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    const output = `${timestamp} ℹ️  ${message} ${formatted}\n`;
+    const output = `ℹ️  ${timestamp} ${message} ${formatted}\n`;
     writeSync(1, output);
   }
 
   static success(message: string, ...args: any[]) {
     const timestamp = Logger.getTimestamp();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    const output = `${timestamp} ✅ ${message} ${formatted}\n`;
+    const output = `✅ ${timestamp} ${message} ${formatted}\n`;
     writeSync(1, output);
   }
 
@@ -72,7 +77,7 @@ export class Logger {
     const timestamp = Logger.getTimestamp();
     const caller = Logger.getCallerInfo();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    const output = `${timestamp} ⚠️  ${caller} ${message} ${formatted}\n`;
+    const output = `${YELLOW}⚠️  ${timestamp} ${caller} ${message} ${formatted}${RESET}\n`;
     writeSync(2, output);
   }
 
@@ -80,11 +85,11 @@ export class Logger {
     const timestamp = Logger.getTimestamp();
     const caller = Logger.getCallerInfo();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    let output = `${timestamp} ❌ ${caller} ${message} ${formatted}\n`;
+    let output = `${RED}❌ ${timestamp} ${caller} ${message} ${formatted}${RESET}\n`;
     if (error?.stack) {
-      output += error.stack + '\n';
+      output += `${RED}${error.stack}${RESET}\n`;
     } else if (error) {
-      output += String(error) + '\n';
+      output += `${RED}${String(error)}${RESET}\n`;
     }
     writeSync(2, output);
   }
@@ -93,11 +98,11 @@ export class Logger {
     const timestamp = Logger.getTimestamp();
     const caller = Logger.getCallerInfo();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    let output = `${timestamp} ❌ ${caller} ${message} ${formatted}\n`;
+    let output = `${RED}❌ ${timestamp} ${caller} ${message} ${formatted}${RESET}\n`;
     if (error?.stack) {
-      output += error.stack + '\n';
+      output += `${RED}${error.stack}${RESET}\n`;
     } else if (error) {
-      output += String(error) + '\n';
+      output += `${RED}${String(error)}${RESET}\n`;
     }
     writeSync(2, output);
   }
@@ -106,7 +111,7 @@ export class Logger {
     if (process.env.DEBUG === 'true') {
       const timestamp = Logger.getTimestamp();
       const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-      const output = `${timestamp} 🔍 ${message} ${formatted}\n`;
+      const output = `🔍 ${timestamp} ${message} ${formatted}\n`;
       writeSync(1, output);
     }
   }
@@ -114,7 +119,7 @@ export class Logger {
   static api(method: string, path: string, ...args: any[]) {
     const timestamp = Logger.getTimestamp();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    const output = `${timestamp} 🌐 ${method} ${path} ${formatted}\n`;
+    const output = `🌐 ${timestamp} ${method} ${path} ${formatted}\n`;
     writeSync(1, output);
   }
 
@@ -122,7 +127,7 @@ export class Logger {
     if (process.env.DEBUG === 'true') {
       const timestamp = Logger.getTimestamp();
       const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-      const output = `${timestamp} 💾 ${operation} ${collection} ${formatted}\n`;
+      const output = `💾 ${timestamp} ${operation} ${collection} ${formatted}\n`;
       writeSync(1, output);
     }
   }

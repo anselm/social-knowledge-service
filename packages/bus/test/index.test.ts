@@ -12,9 +12,11 @@ async function runTestFile(filename: string) {
   try {
     const { stdout, stderr } = await execAsync(`node dist-test/${filename}`);
     if (stdout) Logger.raw(stdout);
+    if (stderr) Logger.raw(stderr);
   } catch (error: any) {
     Logger.error(`Error running ${filename}:`, error.message);
     if (error.stdout) Logger.raw(error.stdout);
+    if (error.stderr) Logger.raw(error.stderr);
     throw error;
   }
 }

@@ -1,7 +1,8 @@
 import { Bus } from '../dist/bus.js';
+import { Logger } from '@social/logger';
 
 async function testBasicObserver() {
-  console.log('Test: Basic Observer');
+  Logger.info('Test: Basic Observer');
   
   const bus = new Bus();
   let observerCalled = false;
@@ -13,7 +14,7 @@ async function testBasicObserver() {
     on_entity: async (blob: any, bus: any) => {
       observerCalled = true;
       receivedBlob = blob;
-      console.log('Observer received:', blob);
+      Logger.log('Observer received:', blob);
     }
   };
   
@@ -26,14 +27,14 @@ async function testBasicObserver() {
   
   // Verify
   if (observerCalled && receivedBlob?.message === 'Hello from test') {
-    console.log('✅ Test passed: Observer was called with correct data');
+    Logger.success('Test passed: Observer was called with correct data');
   } else {
-    console.log('❌ Test failed: Observer was not called or received wrong data');
+    Logger.error('Test failed: Observer was not called or received wrong data');
   }
 }
 
 async function testFilteredObserver() {
-  console.log('\nTest: Filtered Observer');
+  Logger.info('\nTest: Filtered Observer');
   
   const bus = new Bus();
   let observerCalled = false;
@@ -45,7 +46,7 @@ async function testFilteredObserver() {
       filter: 'user',
       resolve: async (blob: any, bus: any) => {
         observerCalled = true;
-        console.log('Filtered observer received:', blob);
+        Logger.log('Filtered observer received:', blob);
       }
     }
   };
@@ -57,7 +58,7 @@ async function testFilteredObserver() {
   await bus.event({ message: 'No user property' });
   
   if (observerCalled) {
-    console.log('❌ Test failed: Observer should not have been called');
+    Logger.error('Test failed: Observer should not have been called');
     return;
   }
   
@@ -65,9 +66,9 @@ async function testFilteredObserver() {
   await bus.event({ user: 'Alice', message: 'Has user property' });
   
   if (observerCalled) {
-    console.log('✅ Test passed: Filtered observer was called only for matching objects');
+    Logger.success('Test passed: Filtered observer was called only for matching objects');
   } else {
-    console.log('❌ Test failed: Filtered observer was not called');
+    Logger.error('Test failed: Filtered observer was not called');
   }
 }
 

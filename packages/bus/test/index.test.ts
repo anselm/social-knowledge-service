@@ -1,46 +1,47 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { Logger } from '@social/logger';
 
 const execAsync = promisify(exec);
 
 async function runTestFile(filename: string) {
-  console.log(`\n${'='.repeat(60)}`);
-  console.log(`Running: ${filename}`);
-  console.log('='.repeat(60));
+  Logger.log(`\n${'='.repeat(60)}`);
+  Logger.log(`Running: ${filename}`);
+  Logger.log('='.repeat(60));
   
   try {
     const { stdout, stderr } = await execAsync(`node dist-test/${filename}`);
-    if (stdout) console.log(stdout);
-    if (stderr) console.error(stderr);
+    if (stdout) Logger.log(stdout);
+    if (stderr) Logger.error(stderr);
   } catch (error: any) {
-    console.error(`Error running ${filename}:`, error.message);
-    if (error.stdout) console.log(error.stdout);
-    if (error.stderr) console.error(error.stderr);
+    Logger.error(`Error running ${filename}:`, error.message);
+    if (error.stdout) Logger.log(error.stdout);
+    if (error.stderr) Logger.error(error.stderr);
     throw error;
   }
 }
 
 async function runAllTests() {
-  console.log('Starting Bus Package Test Suite');
-  console.log('='.repeat(60));
+  Logger.info('Starting Bus Package Test Suite');
+  Logger.log('='.repeat(60));
   
   try {
     await runTestFile('basic.test.js');
     await runTestFile('priority.test.js');
     await runTestFile('loader.test.js');
     
-    console.log(`\n${'='.repeat(60)}`);
-    console.log('✅ All tests completed successfully!');
-    console.log('='.repeat(60));
+    Logger.log(`\n${'='.repeat(60)}`);
+    Logger.success('All tests completed successfully!');
+    Logger.log('='.repeat(60));
   } catch (error) {
-    console.log(`\n${'='.repeat(60)}`);
-    console.error('❌ Test suite failed');
-    console.log('='.repeat(60));
+    Logger.log(`\n${'='.repeat(60)}`);
+    Logger.error('Test suite failed');
+    Logger.log('='.repeat(60));
     process.exit(1);
   }
 }
 
 runAllTests().catch((error) => {
-  console.error('Fatal error:', error);
+  Logger.error('Fatal error:', error);
   process.exit(1);
 });

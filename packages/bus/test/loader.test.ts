@@ -1,10 +1,9 @@
 import { Bus } from '../dist/bus.js';
 import { loader } from '../dist/loader.js';
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
+import { Logger } from '@social/logger';
 
 async function testLoaderBasic() {
-  console.log('\nTest: Loader Basic Functionality on cwd',process.cwd());
+  Logger.info('\nTest: Loader Basic Functionality on cwd', process.cwd());
   
   try {
     const bus = new Bus();
@@ -23,18 +22,18 @@ async function testLoaderBasic() {
     });
     
     if (result && result.success && result.value === 'Hello from dynamic module') {
-      console.log('✅ Test passed: Loader successfully loaded and registered observer');
+      Logger.success('Test passed: Loader successfully loaded and registered observer');
     } else {
-      console.log('❌ Test failed: Loaded observer did not work correctly');
-      console.log('Result:', result);
+      Logger.error('Test failed: Loaded observer did not work correctly');
+      Logger.log('Result:', result);
     }
   } catch (e) {
-    console.error('❌ Test failed with error:', e);
+    Logger.error('Test failed with error:', e);
   }
 }
 
 async function testLoaderArray() {
-  console.log('\nTest: Loader with Array of Modules');
+  Logger.info('\nTest: Loader with Array of Modules');
   
   try {
     
@@ -45,11 +44,7 @@ async function testLoaderArray() {
   
     // Request to load multiple modules
     await bus.event({
-      load: "./test-data/test-file-2.js"
-    });
-    
-    await bus.event({
-      load: "./test-data/test-file-1.js"
+      load: [ "./test-data/test-file-2.js", "./test-data/test-file-1.js" ]
     });
 
     // Test the second loaded observer
@@ -58,18 +53,18 @@ async function testLoaderArray() {
     });
 
     if (result && result.success && result.observer === 2) {
-      console.log('✅ Test passed: Loader successfully loaded multiple modules');
+      Logger.success('Test passed: Loader successfully loaded multiple modules');
     } else {
-      console.log('❌ Test failed: Multiple module loading did not work correctly');
-      console.log('Result:', result);
+      Logger.error('Test failed: Multiple module loading did not work correctly');
+      Logger.log('Result:', result);
     }
   } catch (e) {
-    console.error('❌ Test failed with error:', e);
+    Logger.error('Test failed with error:', e);
   }
 }
 
 async function testLoaderDuplicatePrevention() {
-  console.log('\nTest: Loader Prevents Duplicate Loading');
+  Logger.info('\nTest: Loader Prevents Duplicate Loading');
     
   try {
     const bus = new Bus();
@@ -88,18 +83,18 @@ async function testLoaderDuplicatePrevention() {
       
     // Count how many observers we have (should not have duplicates)
     const observerCount = bus.observers.length;
-    console.log('Observer count:', observerCount);
+    Logger.log('Observer count:', observerCount);
     
     // We should have: on_entity_register, loader, and testObserver (3 total)
     // If we had duplicates, we'd have 4 or more
     if (observerCount === 3) {
-      console.log('✅ Test passed: Loader prevented duplicate loading');
+      Logger.success('Test passed: Loader prevented duplicate loading');
     } else {
-      console.log('❌ Test failed: Duplicate prevention did not work');
-      console.log('Expected 3 observers, got:', observerCount);
+      Logger.error('Test failed: Duplicate prevention did not work');
+      Logger.log('Expected 3 observers, got:', observerCount);
     }
   } catch (e) {
-    console.error('❌ Test failed with error:', e);
+    Logger.error('Test failed with error:', e);
   }
 }
 

@@ -1,7 +1,8 @@
 import { Bus } from '../dist/bus.js';
+import { Logger } from '@social/logger';
 
 async function testObserverPriority() {
-  console.log('Test: Observer Priority');
+  Logger.info('Test: Observer Priority');
   
   const bus = new Bus();
   const callOrder: string[] = [];
@@ -14,7 +15,7 @@ async function testObserverPriority() {
       resolve: async (blob: any, bus: any) => {
         if (blob.test) {
           callOrder.push('observer1');
-          console.log('Observer 1 called');
+          Logger.log('Observer 1 called');
         }
       }
     }
@@ -28,7 +29,7 @@ async function testObserverPriority() {
       resolve: async (blob: any, bus: any) => {
         if (blob.test) {
           callOrder.push('observer2');
-          console.log('Observer 2 called');
+          Logger.log('Observer 2 called');
         }
       }
     }
@@ -42,17 +43,17 @@ async function testObserverPriority() {
   await bus.event({ test: true, message: 'Testing priority' });
   
   // Verify call order
-  console.log('Call order:', callOrder);
+  Logger.log('Call order:', callOrder);
   
   if (callOrder[0] === 'observer1' && callOrder[1] === 'observer2') {
-    console.log('✅ Test passed: Observers called in priority order');
+    Logger.success('Test passed: Observers called in priority order');
   } else {
-    console.log('❌ Test failed: Observers not called in correct priority order');
+    Logger.error('Test failed: Observers not called in correct priority order');
   }
 }
 
 async function testArrayUnrolling() {
-  console.log('\nTest: Array Unrolling');
+  Logger.info('\nTest: Array Unrolling');
   
   const bus = new Bus();
   const receivedMessages: string[] = [];
@@ -63,7 +64,7 @@ async function testArrayUnrolling() {
     on_entity: async (blob: any, bus: any) => {
       if (blob.message) {
         receivedMessages.push(blob.message);
-        console.log('Received message:', blob.message);
+        Logger.log('Received message:', blob.message);
       }
     }
   };
@@ -82,10 +83,10 @@ async function testArrayUnrolling() {
       receivedMessages[0] === 'First' &&
       receivedMessages[1] === 'Second' &&
       receivedMessages[2] === 'Third') {
-    console.log('✅ Test passed: Array was unrolled and all items processed');
+    Logger.success('Test passed: Array was unrolled and all items processed');
   } else {
-    console.log('❌ Test failed: Array unrolling did not work correctly');
-    console.log('Received:', receivedMessages);
+    Logger.error('Test failed: Array unrolling did not work correctly');
+    Logger.log('Received:', receivedMessages);
   }
 }
 

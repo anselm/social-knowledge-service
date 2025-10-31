@@ -5,18 +5,16 @@ import { Logger } from '@social/logger';
 const execAsync = promisify(exec);
 
 async function runTestFile(filename: string) {
-  Logger.log(`\n${'='.repeat(60)}`);
+  Logger.log(`${'='.repeat(60)}`);
   Logger.log(`Running: ${filename}`);
   Logger.log('='.repeat(60));
   
   try {
     const { stdout, stderr } = await execAsync(`node dist-test/${filename}`);
-    if (stdout) Logger.log(stdout);
-    if (stderr) Logger.error(stderr);
+    if (stdout) Logger.raw(stdout);
   } catch (error: any) {
     Logger.error(`Error running ${filename}:`, error.message);
-    if (error.stdout) Logger.log(error.stdout);
-    if (error.stderr) Logger.error(error.stderr);
+    if (error.stdout) Logger.raw(error.stdout);
     throw error;
   }
 }

@@ -43,6 +43,10 @@ export class Logger {
     return `[${ms}.${pid}.${seq.toString().padStart(6, '0')}]`;
   }
 
+  static raw(message: string) {
+    writeSync(1, message);
+  }
+
   static log(message: string, ...args: any[]) {
     const timestamp = Logger.getTimestamp();
     const formatted = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');

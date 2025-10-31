@@ -2,35 +2,34 @@ import { writeSync } from 'fs';
 
 export class Logger {
   static getCallerInfo() {
-    const err = new Error();
-    const stack = err.stack?.split('\n');
-    // Stack typically looks like:
-    // Error
-    //   at Object.getCallerInfo (...)
-    //   at Object.warn/error (...)
-    //   at actual caller (...)
-    // So we want index 3
-    if (!stack || stack.length <= 3) {
-      return '';
+    // Capture stack trace synchronously using V8's prepareStackTrace
+    const originalPrepareStackTrace = Error.prepareStackTrace;
+    let callerInfo = '';
+    
+    try {
+      Error.prepareStackTrace = (_, stack) => stack;
+      const err = { stack: null } as any;
+      Error.captureStackTrace(err, Logger.getCallerInfo);
+      const stack = err.stack;
+      
+      // Stack is now an array of CallSite objects
+      if (stack && stack.length > 0) {
+        const caller = stack[0]; // First frame is the actual caller
+        const fileName = caller.getFileName();
+        const functionName = caller.getFunctionName() || '<anonymous>';
+        
+        if (fileName) {
+          const shortFileName = fileName.split('/').pop()?.split('\\').pop();
+          callerInfo = `[${shortFileName}:${functionName}]`;
+        }
+      }
+    } catch (e) {
+      // If anything fails, just return empty string
+    } finally {
+      Error.prepareStackTrace = originalPrepareStackTrace;
     }
     
-    const callerLineRaw = stack[3];
-    if (!callerLineRaw) {
-      return '';
-    }
-    
-    const callerLine = callerLineRaw.trim();
-    // Parse patterns like "at functionName (file:line:col)" or "at file:line:col"
-    const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?$/);
-    if (match) {
-      const functionName = match[1] || '<anonymous>';
-      const filePath = match[2];
-      if(!filePath) return ""
-      const fileName = filePath.split('/').pop()?.split('\\').pop();
-      return `[${fileName}:${functionName}]`;
-    }
-    
-    return '';
+    return callerInfo;
   }
 
   static log(message: string, ...args: any[]) {

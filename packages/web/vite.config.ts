@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
       // SPA fallback - serve index.html for all routes
       historyApiFallback: {
         rewrites: [
-          { from: /^\/api\/.*$/, to: context => context.parsedUrl.path },
+          { from: /^\/api\/.*$/, to: (context: any) => context.parsedUrl.path },
           { from: /./, to: '/index.html' }
         ]
       }

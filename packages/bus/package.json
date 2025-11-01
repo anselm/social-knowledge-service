@@ -17,7 +17,7 @@
     "test": "npm run build && npm run build:test && node dist-test/index.test.js"
   },
   "dependencies": {
-    "@social/logger": "file:../logger"
+    "@social/basic": "file:../basic"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

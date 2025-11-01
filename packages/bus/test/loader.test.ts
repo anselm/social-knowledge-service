@@ -1,6 +1,6 @@
 import { Bus } from '../dist/bus.js';
 import { loader } from '../dist/loader.js';
-import { Logger } from '@social/logger';
+import { Logger } from '@social/basic';
 
 async function testLoaderBasic() {
   Logger.info('Test: Loader Basic Functionality on cwd ' + process.cwd());

@@ -1,4 +1,4 @@
-import { Logger } from '@social/logger'
+import { Logger } from '@social/basic'
 import { Bus } from './bus.js'
 import { fileURLToPath } from 'url'
 import { dirname, resolve as pathResolve } from 'path'

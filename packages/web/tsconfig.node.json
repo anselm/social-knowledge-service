@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "composite": true,
+    "target": "ES2015",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "noEmit": true
+    "outDir": "dist-node"
   },
   "include": ["vite.config.ts"]
 }

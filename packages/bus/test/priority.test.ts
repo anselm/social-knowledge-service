@@ -1,5 +1,5 @@
 import { Bus } from '../dist/bus.js';
-import { Logger } from '@social/logger';
+import { Logger } from '@social/basic';
 
 async function testObserverPriority() {
   Logger.info('Test: Observer Priority');

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "references": [
+    { "path": "./packages/bus" },
+    { "path": "./packages/basic" },
+    { "path": "./packages/knowledge" },
+    { "path": "./packages/server" },
+    { "path": "./packages/web-fancy" }
+  ],
+  "files": []
+}

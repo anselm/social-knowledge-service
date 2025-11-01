@@ -1,19 +1,29 @@
-# ---- Build stage ----
-FROM node:20-alpine AS build
+# Node
+FROM node:22-alpine
+
 WORKDIR /app
-COPY package.json tsconfig.base.json ./
-COPY packages ./packages
-RUN corepack enable || true
-RUN npm i
+
+# Copy the whole repo (monorepo root)
+COPY . .
+
+# Install all workspaces
+RUN npm install --workspaces
+
+# Build
 RUN npm run build
 
-# ---- Runtime stage ----
-FROM node:20-alpine AS runtime
-WORKDIR /app
+# Drop dev deps across workspaces to slim runtime
+RUN npm prune --omit=dev --workspaces
+
+# Some config
 ENV NODE_ENV=production
-# copy node_modules for runtime and built dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
 EXPOSE 8080
-HEALTHCHECK --interval=10s --timeout=3s --retries=5 CMD wget -qO- http://localhost:8080/healthz || exit 1
-CMD ["node", "packages/traffic/dist/server.js"]
+
+# Curl for healthcheck
+RUN apk add --no-cache curl
+
+# Healthcheck (expects /healthz route)
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 CMD curl -fsS http://localhost:8080/healthz || exit 1
+
+# Start
+CMD ["node", "packages/server/dist/server.js"]

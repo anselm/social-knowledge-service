@@ -1,5 +1,5 @@
 import { Bus } from '../dist/bus.js';
-import { Logger } from '@social/logger';
+import { Logger } from '@social/basic';
 
 async function testBasicObserver() {
   Logger.info('Test: Basic Observer');

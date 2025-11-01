@@ -1,5 +1,5 @@
 
-import {Logger} from '@social/logger'
+import {Logger} from '@social/basic'
 
 // Define types for the observer pattern
 type OnEntityFunction = (blob: any, bus: Bus) => Promise<any>;

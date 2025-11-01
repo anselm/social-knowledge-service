@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@social/bus": "file:../bus",
-    "@social/services": "file:../services",
-    "@social/traffic": "file:../traffic",
+    "@social/knowledge": "file:../knowledge",
+    "@social/server": "file:../server",
     "svelte-routing": "^2.13.0",
     "dexie": "^3.2.7",
     "magic-sdk": "^31.0.0",

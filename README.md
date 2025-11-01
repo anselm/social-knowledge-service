@@ -11,8 +11,8 @@ In our daily lives we exchange a variety of digital artifacts with other people 
 The project is a mono repo broken into these key packages:
 
 - `@social/bus`      — pubsub event messaging backbone
-- `@social/services` — definies state and legal actions
-- `@social/traffic`  — networking wrapper - serves web
+- `@social/knowledge` — definies state and legal actions
+- `@social/server`    — networking wrapper - serves web
 - `@social/web`      — web interface
 
 There's also a docker file to build the project as a docker.

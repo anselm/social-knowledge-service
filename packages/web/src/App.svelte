@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Router, Route } from 'svelte-routing'
   import Splash from './pages/Splash.svelte'
-  export let url = ""
 </script>
 
 <div class="app">

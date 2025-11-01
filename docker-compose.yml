@@ -16,17 +16,17 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      - PORT=3000
+      - PORT=8080
       - MONGO_URL=mongodb://mongo:27017
       - MONGO_DB=appdb
       - MONGO_COLLECTION=entities
     ports:
-      - "3000:3000"
+      - "8080:8080"
     depends_on:
       mongo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 10s
       timeout: 3s
       retries: 5

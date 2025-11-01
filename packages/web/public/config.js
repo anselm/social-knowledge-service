@@ -1,21 +1,14 @@
-// Client configuration file
-// This file can be modified after build to customize the application
 
 window.APP_CONFIG = {
-  // Application title and branding
-  appTitle: 'Social Social!',
   
   // Header configuration
   header: {
+
+    // title? thevibe, thedirt, hyperlocal, locavore? still exploring
+    title: 'vibe.ai',
+
     // Whether to show the header
-    enabled: false,
-    
-    // Header links (static only for post-build customization)
-    links: [
-      { label: 'Home', href: '/' },
-      { label: 'Admin', href: '/admin' },
-      { label: 'Login', href: '/login' }
-    ],
+    enabled: true,
     
     // Custom header component (as HTML string)
     customHtml: null,
@@ -26,50 +19,61 @@ window.APP_CONFIG = {
   
   // API configuration
   api: {
-    // Base URL for API calls
+    // Base URL for API calls - by default looks on port 8080 if running the client vite - see vite.config.ts
     baseUrl: '/api',
     
-    // Serverless mode - fetch all data from a static JSON file
+    // Serverless mode - use only cached/static data
     serverless: false,
     
-    // URL to fetch all entities in serverless mode
-    serverlessDataUrl: '/data/entities.json',
-    
-    // Enable client-side caching with IndexedDB
+    // Enable client-side caching with IndexedDB (@todo bug! this must be set the same as serverless for now!)
     enableCache: false,
     
+    // Load root info.js on startup
+    loadStaticData: false,
+    
+    // Flush cache on startup (useful for development)
+    flushCacheOnStartup: true,
+
     // Cache duration in milliseconds (default: 5 minutes)
-    cacheDuration: 5 * 60 * 1000
+    cacheDuration: 5 * 60 * 1000,
+    
+    // Server availability check interval (milliseconds)
+    // Set to 0 to disable automatic retry
+    serverRetryInterval: 30000 // 30 seconds
   },
   
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: false,
+    authentication: true,
     
     // Enable content creation
-    allowCreate: false,
+    allowCreate: true,
     
     // Enable content editing
-    allowEdit: false,
+    allowEdit: true,
     
     // Enable content deletion
-    allowDelete: false
+    allowDelete: true 
   },
   
-  // Custom methods can be added here
-  methods: {
-    // Example: Custom initialization
-    onInit: () => {
-      console.log('App initialized with custom config');
-    },
+  // Routing configuration
+  routing: {
+    // Routing mode: 'path' for SPA servers, 'query' for static hosts like GitHub Pages
+    mode: 'path', // 'path' | 'query'
     
-    // Example: Custom header renderer
-    renderHeader: (config) => {
-      if (config.header.customHtml) {
-        return config.header.customHtml;
-      }
-      return null;
-    }
+    // Base path for the application (useful for GitHub Pages with project sites)
+    basePath: ''
+  },
+  
+  // Map configuration
+  map: {
+    // Map provider: 'mapbox' or 'leaflet'
+    provider: 'mapbox',
+    
+    // Mapbox access token (required if provider is 'mapbox')
+    // This will be replaced at build time with the environment variable - see .env
+    mapboxAccessToken: ''
   }
+  
 };

@@ -1,10 +1,17 @@
 <script lang="ts">
   import { Router, Route } from 'svelte-routing'
+  import Splash from './pages/Splash.svelte'
   export let url = ""
 </script>
 
-<Router {url}>
-  <Layout>
-    <Route path="/*wildcard" component={Splash} />
-  </Layout>
-</Router>
+<div class="app">
+  <Splash />
+</div>
+
+<style>
+  .app {
+    width: 100%;
+    min-height: 100vh;
+  }
+</style>
+~                

@@ -22,19 +22,17 @@ async function runTestFile(filename: string) {
 }
 
 async function runAllTests() {
-  Logger.info('Starting Bus Package Test Suite');
-  Logger.log('='.repeat(60));
   
   try {
     await runTestFile('basic.test.js');
     await runTestFile('priority.test.js');
     await runTestFile('loader.test.js');
     
-    Logger.log(`\n${'='.repeat(60)}`);
+    Logger.log(`${'='.repeat(60)}`);
     Logger.success('All tests completed successfully!');
     Logger.log('='.repeat(60));
   } catch (error) {
-    Logger.log(`\n${'='.repeat(60)}`);
+    Logger.log(`${'='.repeat(60)}`);
     Logger.error('Test suite failed');
     Logger.log('='.repeat(60));
     process.exit(1);

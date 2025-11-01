@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-black text-white;
+  }
+  
+  body {
+    @apply font-mono text-sm;
+  }
+  
+  ::selection {
+    @apply bg-white text-black;
+  }
+}

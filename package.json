@@ -7,8 +7,8 @@
   ],
   "scripts": {
     "build": "npm --prefix packages/logger run build && npm --prefix packages/bus run build && npm --prefix packages/services run build && npm --prefix packages/traffic run build && npm --prefix packages/web run build",
-    "dev": "npm --prefix packages/web run dev",
-    "test": "npm --prefix packages/bus run test",
+    "dev": "npm run build; npm --prefix packages/traffic run server",
+    "test": "npm run build; npm --prefix packages/bus run test",
     "lint": "eslint ."
   },
   "devDependencies": {

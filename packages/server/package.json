@@ -12,17 +12,28 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsx watch src/index.ts",
-    "server": "tsx watch src/server.ts"
+    "build": "npx tsc src/*.ts --outDir dist --target ES2022 --module NodeNext --moduleResolution NodeNext --esModuleInterop --allowJs --declaration --sourceMap --skipLibCheck",
+    "dev": "NODE_ENV=development tsx watch src/index.ts",
+    "test:graphql": "node test/graphql-integration-test.js",
+    "test:auth": "node test/auth-test.js",
+    "test:auth:integration": "node test/auth-integration-test.js",
+    "test:creator": "node test/creator-binding-test.js",
+    "test:security": "node test/security-integration-test.js",
+    "test:security:basic": "node test/security-basic-test.js",
+    "test:siwe": "node test/siwe-auth-test.js",
+    "test:relationships": "node test/relationship-api-test.js",
+    "test:all": "npm run test:auth && npm run test:creator && npm run test:graphql && npm run test:security:basic && npm run test:siwe && npm run test:relationships"
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
     "@fastify/static": "^8.3.0",
-    "@social/bus": "file:../bus",
+    "@magic-sdk/admin": "^2.8.2",
     "@social/knowledge": "file:../knowledge",
+    "dotenv": "^16.0.0",
     "fastify": "^5.0.0",
-    "dotenv": "^16.0.0"
+    "mercurius": "^16.5.0",
+    "pino": "^9.5.0",
+    "viem": "^2.38.6"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

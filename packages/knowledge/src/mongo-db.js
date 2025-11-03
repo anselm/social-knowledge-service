@@ -1,5 +1,5 @@
 import { uuidv7 } from 'uuidv7'
-import { Logger } from '@social/basic'
+import { Logger } from './logger.js'
 import { Perms } from './perms.js'
 import { MongoClient } from 'mongodb'
 
@@ -17,8 +17,16 @@ async function initMongo(bus) {
     const db = client.db(mongoDb)
     const collection = db.collection(mongoCollection)
     
-    // Create indexes for performance
-    await collection.createIndex({ kid: 1 }, { unique: true })
+    // Check if we should flush the database
+    const shouldFlushDb = process.env.FLUSH_DB === 'true' || process.env.FLUSH_DB === '1'
+    
+    if (shouldFlushDb) {
+      const deleteResult = await collection.deleteMany({})
+      Logger.info(`🗑️  FLUSH_DB: Deleted ${deleteResult.deletedCount} documents from MongoDB collection`)
+    }
+    
+    // Create index for efficient lookups
+    await collection.createIndex({ id: 1 }, { unique: true })
     await collection.createIndex({ type: 1 })
     
     // Store connection details on the bus
@@ -27,7 +35,7 @@ async function initMongo(bus) {
     }
     bus._database_bindings.mongo = { db, collection, client }
     
-    Logger.info(`🗄️  Connected to MongoDB: ${mongoUrl}/${mongoDb}/${mongoCollection}`)
+    Logger.info(`🗄️ Connected to MongoDB: ${mongoUrl}/${mongoDb}/${mongoCollection}`)
     return bus._database_bindings.mongo
   } catch (error) {
     Logger.error('Failed to connect to MongoDB:', error)
@@ -76,8 +84,24 @@ export const mongo_query = {
 		resolve: async (blob, bus)=>{
 			const { collection } = await initMongo(bus)
 			
-			const mongoQuery = buildMongoQuery(blob.query)
-			const candidates = await collection.find(mongoQuery).toArray()
+			// Extract pagination parameters and exclude from actual query
+			const { limit, offset, ...actualQuery } = blob.query
+			
+			const mongoQuery = buildMongoQuery(actualQuery)
+
+			console.log("******* server looking for",mongoQuery)
+
+			let queryBuilder = collection.find(mongoQuery)
+			
+			// Apply pagination if provided
+			if (offset && parseInt(offset) > 0) {
+				queryBuilder = queryBuilder.skip(parseInt(offset))
+			}
+			if (limit && parseInt(limit) > 0) {
+				queryBuilder = queryBuilder.limit(parseInt(limit))
+			}
+			
+			const candidates = await queryBuilder.toArray()
 			
 			Logger.info(`🔍 MongoDB query found ${candidates.length} results`)
 			return candidates
@@ -89,31 +113,31 @@ export const mongo_db = {
 	meta: {title:"mongo_db"},
 	on_entity: {
 		priority: 998, // Slightly earlier priority than volatile_db so it runs before
-		filter: 'kid',
+		filter: 'id',
 		resolve: async (blob, bus)=>{
 			const { collection } = await initMongo(bus)
 
 			// paranoia check
-			if(!blob.hasOwnProperty('kid')) {
-				Logger.error('no kid present')
+			if(!blob.hasOwnProperty('id')) {
+				Logger.error('no id present')
 				return
 			}
 
-			// passing 0, null or "" indicates a desire to generate a new kid identifier
-			if(!blob.kid || !blob.kid.length) {
-				blob.kid = `${uuidv7()}`
+			// passing 0, null or "" indicates a desire to generate a new id identifier
+			if(!blob.id || !blob.id.length) {
+				blob.id = `${uuidv7()}`
 			}
 
 			// obliterate?
 			if(blob.obliterate) {
-				const result = await collection.deleteOne({ kid: blob.kid })
+				const result = await collection.deleteOne({ id: blob.id })
 				if (result.deletedCount > 0) {
-					Logger.info(`🗑️  Deleted entity ${blob.kid} from MongoDB`)
+					Logger.info(`🗑️  Deleted entity ${blob.id} from MongoDB`)
 				}
 				return
 			}
 
-			const existing = await collection.findOne({ kid: blob.kid })
+			const existing = await collection.findOne({ id: blob.id })
 
 			// check if write perms here
 			if(!Perms.write(blob,existing)) {
@@ -132,14 +156,14 @@ export const mongo_db = {
 				// Remove the _id field to avoid MongoDB immutable field error
 				delete cleanDoc._id
 				
-				await collection.replaceOne({ kid: blob.kid }, cleanDoc)
-				Logger.info(`📝 Updated entity ${blob.kid} in MongoDB`)
+				await collection.replaceOne({ id: blob.id }, cleanDoc)
+				Logger.info(`📝 Updated entity ${blob.id} in MongoDB`)
 			} else {
 				// Clean the document before inserting
 				const cleanDoc = JSON.parse(JSON.stringify(blob))
 				
 				await collection.insertOne(cleanDoc)
-				Logger.info(`💾 Created entity ${blob.kid} in MongoDB`)
+				Logger.info(`💾 Created entity ${blob.id} in MongoDB`)
 			}
 		}
 	}

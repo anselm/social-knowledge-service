@@ -1,0 +1,229 @@
+{
+	"$id": "ka://schemas/core/meta/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "meta",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Metadata on an entity",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"label": { "type": "string", "description": "Human-readable label/title" },
+		"slug": { "type": "string", "description": "URL-safe identifier" },
+		"content": { "type": "string", "description": "Primary body/notes (markdown ok)" },
+		"depiction": { "type": "string", "format": "uri", "description": "Image URL" },
+		"view": { "type": "string", "description": "Preferred UI/view hint" },
+		"tags": { "type": "array", "items": { "type": "string" } },
+		"aliases": { "type": "array", "items": { "type": "string" } },
+		"provenance": { "type": "string" },
+
+		"creatorAddress": {
+			"type": "string",
+			"description": "Address or identifier of the user who created this entity (from SIWE or Magic.link)"
+		},
+
+		"permissions": {
+			"type": "string",
+			"enum": ["private", "protected", "public", "append"],
+			"description": "Visibility and permissions level of this entity"
+		}
+	}
+}
+
+{
+	"$id": "ka://schemas/core/time/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "time",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Temporal phenomenon with optional start/end",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"begins": { "type": "string", "format": "date-time" },
+		"ends": { "type": "string", "format": "date-time" },
+		"duration": { "type": "string", "description": "ISO 8601 duration (e.g., P3D, PT2H)" }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/location/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "location",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Geographic location with lat/lon and optional GeoJSON Point for spatial queries",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["lat", "lon"],
+	"properties": {
+		"lat": { "type": "number", "minimum": -90, "maximum": 90 },
+		"lon": { "type": "number", "minimum": -180, "maximum": 180 },
+		"alt": { "type": "number", "description": "Meters above sea level" },
+		"rad": { "type": "number", "minimum": 0, "description": "Search radius in meters" },
+		"point": {
+			"type": "object",
+			"description": "GeoJSON Point for MongoDB spatial queries",
+			"required": ["type", "coordinates"],
+			"properties": {
+				"type": { "type": "string", "enum": ["Point"] },
+				"coordinates": {
+					"type": "array",
+					"minItems": 2,
+					"maxItems": 3,
+					"items": { "type": "number" },
+					"description": "[longitude, latitude, altitude?] - note longitude first per GeoJSON spec"
+				}
+			}
+		}
+	}
+}
+
+{
+	"$id": "ka://schemas/core/address/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "address",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Human-legible address, distinct from geolocation",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"streetAddress": { "type": "string" },
+		"city": { "type": "string" },
+		"region": { "type": "string", "description": "State/province/region" },
+		"postalCode": { "type": "string" },
+		"country": { "type": "string" },
+		"countryCode": { "type": "string", "description": "ISO 3166-1 alpha-2 (e.g., US, MX)" },
+		"admin1": { "type": "string", "description": "First-level admin (if different from region)" },
+		"admin2": { "type": "string", "description": "Second-level admin/county" },
+		"iso_3166_2": { "type": "string", "description": "Subdivision code (e.g., US-CA)" }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/stats/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "stats",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Computed analytics, stats and scores on entities",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"children": { "type": "number", "minimum": 0 },
+		"upvotes": { "type": "number", "minimum": 0 },
+		"visited": { "type": "number", "minimum": 0 },
+		"observers": { "type": "number", "minimum": 0 },
+		"activity": { "type": "number" },
+		"reputation": { "type": "number" },
+		"distance": { "type": "number", "minimum": 0 }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/thing/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "thing",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "An entity that is not alive (a toaster, car, etc.)",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
+		"thing": { "type": "object", "description": "Freeform component space for thing-specific fields", "additionalProperties": true }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/place/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "place",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "A place, perceived of as slightly differently than a thing or party",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
+		"place": { "type": "object", "description": "Freeform component space for place-specific fields", "additionalProperties": true }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/party/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "party",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "A human, animal, sentient AI, or other agent",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
+		"party": { "type": "object", "description": "Freeform component space for party-specific fields", "additionalProperties": true }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/group/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "group",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "Collection concept: subreddit, folder, playlist, club, etc.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
+		"group": { "type": "object", "description": "Freeform component space for group-specific fields", "additionalProperties": true }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/edge/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "edge",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "A relation between two objects - kept in standalone collection",
+	"type": "object",
+	"required": ["subject", "predicate", "object"],
+	"additionalProperties": false,
+	"properties": {
+		"id": { "type": "string" },
+		"subject": { "type": "string" },
+		"predicate": { "type": "string" },
+		"object": { "type": "string" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"rank": { "type": "integer", "minimum": 0 },
+		"weight": { "type": "integer", "minimum": 0 },
+		"edge": { "type": "object", "additionalProperties": true }
+	}
+}
+

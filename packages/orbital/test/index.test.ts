@@ -1,0 +1,45 @@
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { Logger } from '@social/basic';
+
+const execAsync = promisify(exec);
+
+async function runTestFile(filename: string) {
+  Logger.log(`${'='.repeat(60)}`);
+  Logger.log(`Running: ${filename}`);
+  Logger.log('='.repeat(60));
+  
+  try {
+    const { stdout, stderr } = await execAsync(`node dist-test/test/${filename}`);
+    if (stdout) Logger.raw(stdout);
+    if (stderr) Logger.raw(stderr);
+  } catch (error: any) {
+    Logger.error(`Error running ${filename}:`, error.message);
+    if (error.stdout) Logger.raw(error.stdout);
+    if (error.stderr) Logger.raw(error.stderr);
+    throw error;
+  }
+}
+
+async function runAllTests() {
+  
+  try {
+    await runTestFile('basic.test.js');
+    await runTestFile('priority.test.js');
+    await runTestFile('loader.test.js');
+    
+    Logger.log(`${'='.repeat(60)}`);
+    Logger.success('All tests completed successfully!');
+    Logger.log('='.repeat(60));
+  } catch (error) {
+    Logger.log(`${'='.repeat(60)}`);
+    Logger.error('Test suite failed');
+    Logger.log('='.repeat(60));
+    process.exit(1);
+  }
+}
+
+runAllTests().catch((error) => {
+  Logger.error('Fatal error:', error);
+  process.exit(1);
+});

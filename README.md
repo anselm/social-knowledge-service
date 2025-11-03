@@ -1,27 +1,29 @@
-# Social Knowledge Server
+# Social Appliance
 
-Serves concrete entities representing typical concepts such as posts, people, places, things, collections. Uses SIWE (Sign in With Ethereum - ERC-4361) for authentication.
+A social knowledge service.
 
-## Motivations
+## Features
 
-In our daily lives we exchange a variety of digital artifacts with other people representing concepts such as messages, events, people, places, things. But our software tools don't have a similar flexibility; our tools often only deal with one kind of concept - an email client for example doesn't put its data in a place that is visible to anything else. By providing a common or universal backend over a fixed set of objects it becomes easier for new applications to share state. The intended use is a universal backend with pre-defined types and schemas for a variety of projects such as a social network, a personal digital memory, groupware type applications such as a cms or portfolio website.
+- A multiplayer social web experience
+- Supports multiple users with SIWE (Sign in With Ethereum - ERC-4361) for authentication.
+- May also be used as a totally static portfolio website such as on github pages
 
 ## Code layout
 
-The project is a mono repo broken into these key packages:
-
-- `@social/bus`      — pubsub event messaging backbone
-- `@social/knowledge` — definies state and legal actions
-- `@social/server`    — networking wrapper - serves web
-- `@social/web`      — web interface
-
-There's also a docker file to build the project as a docker.
+- `@social/orbital`   — pubsub event messaging backbone
+- `@social/knowledge` — knowledge state management (see [README](packages/knowledge/README.md)
+- `@social/server`    — networking wrapper around knowledge package
+- `@social/web`       — web interface [README](packages/web/README.md)
 
 ## Getting started
 
-### Prerequisites
+### Static deployment
 
-This project requires MongoDB to be running. For local development on macOS:
+Build the web interface and copy it to any SPA web service. Github pages can be configured to support SPA apps. See the web app [README](packages/web/README.md) for more details.
+
+### Dynamic Deployment
+
+For non-static deployment this project requires MongoDB to be running. For local development on macOS:
 
 ```bash
 # Install MongoDB using Homebrew
@@ -36,12 +38,7 @@ brew services stop mongodb-community
 
 ### Environment Configuration
 
-Copy `.env.example` to `.env` and optionally customize these variables:
-
-- `PORT` (default 8080)
-- `MONGO_URL` (default mongodb://localhost:27017)
-- `MONGO_DB` (default social_knowledge_server)
-- `MONGO_COLLECTION` (default entities)
+Copy `.env.example` to `.env` - please refer to this document for the variables.
 
 ### Running the Application
 
@@ -59,4 +56,3 @@ docker compose up --build
 ```
 
 Visit port 8080 with a browser to see the user experience.
-

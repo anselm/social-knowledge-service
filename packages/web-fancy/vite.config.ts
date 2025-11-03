@@ -22,13 +22,14 @@ function buildInfoPlugin() {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const isDev = mode === 'development';
   
   return {
     plugins: [
       buildInfoPlugin(),
       svelte({ 
         preprocess: vitePreprocess(),
-        hot: false,
+        hot: isDev, // Enable hot reloading in development
         emitCss: true
       }),
     ],
@@ -41,7 +42,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true
         }
       },
-      hmr: false,
+      hmr: isDev, // Enable HMR in development
       // SPA fallback - serve index.html for all routes
       historyApiFallback: {
         rewrites: [
@@ -55,7 +56,7 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000,
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: false,
+      sourcemap: isDev, // Enable source maps in development
       rollupOptions: {
         output: {
           manualChunks: {

@@ -8,6 +8,8 @@ export const api = {
     const method = options.method || 'GET'
     log.debug(`API request: ${method} ${path}`)
     
+console.warn("********** fetching",method,path)
+
     try {
       const result = await apiClient.request(path, options)
       log.debug(`API request successful: ${method} ${path}`)

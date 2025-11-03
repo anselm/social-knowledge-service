@@ -1,4 +1,4 @@
-import { Logger } from '@social/basic'
+import { Logger } from './logger.js'
 
 export class Perms {
 
@@ -6,7 +6,7 @@ export class Perms {
 
 		// - get user from a sponsor non custodial key lookup
 
-		//const user_kid = changes.
+		//const user_id = changes.
 
 		// - does the user own this object?
 		// - does the user own parent slugs?

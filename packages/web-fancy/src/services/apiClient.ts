@@ -121,6 +121,8 @@ class ApiClient {
     const config = get(apiConfig)
     const fullUrl = `${config.baseUrl}${path}`
     
+console.log("************* fetching real data",fullUrl)
+
     try {
       log.debug(`Fetching from server: ${fullUrl}`)
       const response = await fetch(fullUrl, {
@@ -152,9 +154,11 @@ class ApiClient {
         ;(err as any).status = 404
         throw err
       }
-      
+
+console.log("*********** got back this entity",data)
+
       log.debug(`Server request successful: ${path}`)
-      return data
+      return data.data
     } catch (error: any) {
       log.info('Server request failed:', error.message)
       throw error
@@ -173,6 +177,8 @@ class ApiClient {
     const config = get(apiConfig)
     const method = options.method || 'GET'
     
+console.log("************* fetching via request",path)
+
     log.debug(`Request ${method} ${path}`)
     
     // For GET requests, use cache if enabled, otherwise go direct to server

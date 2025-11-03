@@ -12,4 +12,4 @@ yarn.lock
 .DS_Store
 coverage/
 .env
-.env.*
+.env.development

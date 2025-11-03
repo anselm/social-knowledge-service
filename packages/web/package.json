@@ -10,7 +10,7 @@
     "deploy": "vite build; gh-pages -d dist"
   },
   "dependencies": {
-    "@social/bus": "file:../bus",
+    "@social/orbital": "file:../orbital",
     "@social/knowledge": "file:../knowledge",
     "@social/server": "file:../server",
     "svelte-routing": "^2.13.0",

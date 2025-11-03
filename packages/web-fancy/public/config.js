@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title? thevibe, thedirt, hyperlocal, locavore? still exploring
-    title: 'vibe.ai',
+    title: 'Portland Places',
 
     // Whether to show the header
     enabled: true,

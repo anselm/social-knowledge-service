@@ -12,14 +12,24 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "test": "node test/run-tests.js",
+    "test:schemas": "node test/schema-tests.js",
+    "test:validation": "node test/validation-tests.js",
+    "test:spatial": "node test/spatial-temporal-tests.js",
+    "test:graphql": "node test/graphql-tests.js",
+    "test:relationships": "node test/relationship-test.js"
   },
   "dependencies": {
-    "@social/bus": "file:../bus",
-    "@social/basic": "file:../basic",
     "mongodb": "^6.8.0",
     "uuidv7": "^1.0.2",
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^3.0.1",
+    "pino": "^8.16.2",
+    "graphql": "^16.8.1",
+    "@graphql-tools/schema": "^10.0.0",
+    "graphql-scalars": "^1.22.4"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

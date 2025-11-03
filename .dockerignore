@@ -8,7 +8,5 @@ npm-debug.log
 pnpm-lock.yaml
 yarn.lock
 coverage
-.env
 .aider*
 package-lock.json
-todo.md

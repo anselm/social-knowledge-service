@@ -12,7 +12,7 @@ const loggers = {
 }
 
 // Set default log level based on environment
-const defaultLevel = import.meta.env.DEV ? 'debug' : 'warn'
+const defaultLevel = 'debug' // import.meta.env.DEV ? 'debug' : 'warn'
 
 // Set default log level to WARN in production, DEBUG in development
 // Available levels: TRACE, DEBUG, INFO, WARN, ERROR, SILENT

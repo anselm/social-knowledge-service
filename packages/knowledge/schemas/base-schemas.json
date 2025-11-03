@@ -4,18 +4,20 @@
 	"name": "meta",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Metadata on an entity",
+	"description": "COMPONENT: Metadata on an entity - stuff miscellaneous common properties here",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"label": { "type": "string", "description": "Human-readable label/title" },
 		"slug": { "type": "string", "description": "URL-safe identifier" },
+		"label": { "type": "string", "description": "Human-readable label/title" },
 		"content": { "type": "string", "description": "Primary body/notes (markdown ok)" },
 		"depiction": { "type": "string", "format": "uri", "description": "Image URL" },
 		"view": { "type": "string", "description": "Preferred UI/view hint" },
 		"tags": { "type": "array", "items": { "type": "string" } },
 		"aliases": { "type": "array", "items": { "type": "string" } },
 		"provenance": { "type": "string" },
+		"created": { "type": "string", "format": "date-time" },
+		"updated": { "type": "string", "format": "date-time" },
 
 		"creatorAddress": {
 			"type": "string",
@@ -26,7 +28,9 @@
 			"type": "string",
 			"enum": ["private", "protected", "public", "append"],
 			"description": "Visibility and permissions level of this entity"
-		}
+		},
+
+		"props": { "type": "object", "description": "Freeform space", "additionalProperties": true }
 	}
 }
 
@@ -36,7 +40,7 @@
 	"name": "time",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Temporal phenomenon with optional start/end",
+	"description": "COMPONENT: Temporal phenomenon with optional start/end",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
@@ -52,7 +56,7 @@
 	"name": "location",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Geographic location with lat/lon and optional GeoJSON Point for spatial queries",
+	"description": "COMPONENT: Geographic location with lat/lon and optional GeoJSON Point for spatial queries",
 	"type": "object",
 	"additionalProperties": false,
 	"required": ["lat", "lon"],
@@ -85,7 +89,7 @@
 	"name": "address",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Human-legible address, distinct from geolocation",
+	"description": "COMPONENT: Human-legible address, distinct from geolocation",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
@@ -107,7 +111,7 @@
 	"name": "stats",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Computed analytics, stats and scores on entities",
+	"description": "COMPONENT: Computed analytics, stats and scores on entities",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
@@ -122,23 +126,42 @@
 }
 
 {
+	"$id": "ka://schemas/core/relation/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "relation",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "COMPONENT: A relation between two objects - kept in standalone collection",
+	"type": "object",
+	"required": ["subject", "predicate", "object"],
+	"additionalProperties": false,
+	"properties": {
+		"subject": { "type": "string" },
+		"predicate": { "type": "string" },
+		"object": { "type": "string" },
+		"rank": { "type": "integer", "minimum": 0 },
+		"weight": { "type": "integer", "minimum": 0 }
+	}
+}
+
+{
 	"$id": "ka://schemas/core/thing/1.0.0",
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"name": "thing",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "An entity that is not alive (a toaster, car, etc.)",
+	"description": "ENTITY: An entity that is not alive (a toaster, car, etc.)",
 	"type": "object",
 	"additionalProperties": false,
 	"required": [ "id", "meta"],
 	"properties": {
 		"id": { "type": "string" },
+		"kind": { "const": "thing", "description": "A fallback catchall entity" },
 		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
 		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
 		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
 		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
-		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
-		"thing": { "type": "object", "description": "Freeform component space for thing-specific fields", "additionalProperties": true }
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
 	}
 }
 
@@ -148,18 +171,18 @@
 	"name": "place",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "A place, perceived of as slightly differently than a thing or party",
+	"description": "ENTITY: A place, perceived of as slightly differently than a thing or party",
 	"type": "object",
 	"additionalProperties": false,
 	"required": [ "id", "meta"],
 	"properties": {
 		"id": { "type": "string" },
+		"kind": { "const": "place", "description": "A place" },
 		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
 		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
 		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
 		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
-		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
-		"place": { "type": "object", "description": "Freeform component space for place-specific fields", "additionalProperties": true }
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
 	}
 }
 
@@ -169,18 +192,39 @@
 	"name": "party",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "A human, animal, sentient AI, or other agent",
+	"description": "ENTITY: A human, animal, sentient AI, or other willful agent",
 	"type": "object",
 	"additionalProperties": false,
 	"required": [ "id", "meta"],
 	"properties": {
 		"id": { "type": "string" },
+		"kind": { "const": "party", "description": "A person, living creature, agent, ai" },
 		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
 		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
 		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
 		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
-		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
-		"party": { "type": "object", "description": "Freeform component space for party-specific fields", "additionalProperties": true }
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/org/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "org",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "ENTITY: An organization, corporation, formal entity that is willful",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"kind": { "const": "org", "description": "An organization or corporation" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
 	}
 }
 
@@ -190,18 +234,18 @@
 	"name": "group",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "Collection concept: subreddit, folder, playlist, club, etc.",
+	"description": "ENTITY: Collection of entities - a subreddit, folder, playlist, club, etc.",
 	"type": "object",
 	"additionalProperties": false,
 	"required": [ "id", "meta"],
 	"properties": {
 		"id": { "type": "string" },
+		"kind": { "const": "group", "description": "A group" },
 		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
 		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
 		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
 		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
-		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" },
-		"group": { "type": "object", "description": "Freeform component space for group-specific fields", "additionalProperties": true }
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
 	}
 }
 
@@ -211,19 +255,15 @@
 	"name": "edge",
 	"namespace": "core",
 	"version": "1.0.0",
-	"description": "A relation between two objects - kept in standalone collection",
+	"description": "ENTITY: an edge between two entities - kept in a separate table!",
 	"type": "object",
-	"required": ["subject", "predicate", "object"],
 	"additionalProperties": false,
+	"required": [ "id", "meta"],
 	"properties": {
 		"id": { "type": "string" },
-		"subject": { "type": "string" },
-		"predicate": { "type": "string" },
-		"object": { "type": "string" },
+		"kind": { "const": "edge", "description": "An edge entity between two other entities" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
 		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
-		"rank": { "type": "integer", "minimum": 0 },
-		"weight": { "type": "integer", "minimum": 0 },
-		"edge": { "type": "object", "additionalProperties": true }
+		"relation": { "$ref": "ka://schemas/core/relation/1.0.0" }
 	}
 }
-

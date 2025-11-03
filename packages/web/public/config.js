@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title? thevibe, thedirt, hyperlocal, locavore? still exploring
-    title: 'vibe.ai',
+    title: 'Portland Places',
 
     // Whether to show the header
     enabled: true,
@@ -74,6 +74,14 @@ window.APP_CONFIG = {
     // Mapbox access token (required if provider is 'mapbox')
     // This will be replaced at build time with the environment variable - see .env
     mapboxAccessToken: ''
+  },
+  
+  // Admin configuration (for development/testing only)
+  admin: {
+    // Admin Ethereum credentials for testing authentication flow
+    // These should match the values in .env file
+    ADMIN_ETHEREUM_PRIVATE: 'fff1ad3ca6b52d57c6d4f67820ec1884fe8a8f74c6aaaadd5ec93d3d250615f7',
+    ADMIN_ETHEREUM_PUBLIC: '0x85d482b27c90d3164bac665494e17bd32b23319d'
   }
   
 };

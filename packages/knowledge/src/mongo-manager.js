@@ -44,6 +44,10 @@ class MongoManager {
       await this.collection.createIndex({ id: 1 }, { unique: true })
       await this.collection.createIndex({ type: 1 })
       
+      // Create unique index for slugs (namespace enforcement)
+      await this.collection.createIndex({ "meta.slug": 1 }, { unique: true, sparse: true })
+      Logger.debug('🔗 Created unique index on meta.slug for namespace enforcement')
+      
       // Create spatial index for location queries
       await this.collection.createIndex({ "location.point": "2dsphere" })
       Logger.debug('🗺️  Created 2dsphere spatial index on location.point')
@@ -212,19 +216,35 @@ class MongoManager {
     // Determine schema based on entity structure
     let schemaId = null
     
-    // Check for explicit type field
-    if (entity.type) {
-      schemaId = `ka://schemas/core/${entity.type}/1.0.0`
+    // Primary: Use entity.kind field (new preferred method)
+    if (entity.kind) {
+      schemaId = `ka://schemas/core/${entity.kind}/1.0.0`
+      Logger.debug(`🏷️  Using entity.kind '${entity.kind}' to determine schema`)
     }
-    // Infer type from entity structure
+    
+    // Fallback: Check for an (optional) explicit type field
+    else if (entity.meta && entity.meta.type) {
+      schemaId = `ka://schemas/core/${entity.meta.type}/1.0.0`
+      Logger.debug(`📋 Using meta.type '${entity.meta.type}' to determine schema (legacy)`)
+    }
+
+    // Last resort: Infer type from entity structure (deprecated)
+    // @todo remove this since we should not hardcode schemas - they can evolve at runtime
     else if (entity.thing) {
       schemaId = 'ka://schemas/core/thing/1.0.0'
+      Logger.debug(`🔍 Inferred 'thing' schema from entity.thing property (deprecated)`)
     } else if (entity.party) {
       schemaId = 'ka://schemas/core/party/1.0.0'
+      Logger.debug(`🔍 Inferred 'party' schema from entity.party property (deprecated)`)
+    } else if (entity.place) {
+      schemaId = 'ka://schemas/core/place/1.0.0'  // Fixed: was 'party' instead of 'place'
+      Logger.debug(`🔍 Inferred 'place' schema from entity.place property (deprecated)`)
     } else if (entity.group) {
       schemaId = 'ka://schemas/core/group/1.0.0'
-    } else if (entity.subject && entity.predicate && entity.object) {
+      Logger.debug(`🔍 Inferred 'group' schema from entity.group property (deprecated)`)
+    } else if (entity.relation) {
       schemaId = 'ka://schemas/core/edge/1.0.0'
+      Logger.debug(`🔍 Inferred 'edge' schema from entity.relation property (deprecated)`)
     }
 
     // Skip validation if we can't determine the schema
@@ -259,7 +279,7 @@ class MongoManager {
     await this.initialize()
     
     if (!entity) return
-    
+
     // Validate entity schema if validation is enabled (default: true)
     if (options.validate !== false) {
       this.validateEntity(entity)
@@ -290,6 +310,11 @@ class MongoManager {
       return
     }
 
+    // Handle slug namespace conflicts
+    if (entity.meta?.slug) {
+      await this.handleSlugConflict(entity, existing, options)
+    }
+
     // Create or update entity
     if (existing) {
       // Merge with existing document
@@ -301,14 +326,73 @@ class MongoManager {
       // Remove the _id field to avoid MongoDB immutable field error
       delete cleanDoc._id
       
-      await this.collection.replaceOne({ id: entity.id }, cleanDoc)
-      Logger.info(`📝 Updated entity ${entity.id} in MongoDB`)
+      try {
+        await this.collection.replaceOne({ id: entity.id }, cleanDoc)
+        Logger.info(`📝 Updated entity ${entity.id} in MongoDB`)
+      } catch (error) {
+        if (error.code === 11000 && error.keyPattern && error.keyPattern['meta.slug']) {
+          throw new Error(`Slug conflict: Another entity already exists with slug '${entity.meta.slug}'`)
+        }
+        throw error
+      }
     } else {
       // Clean the document before inserting
       const cleanDoc = JSON.parse(JSON.stringify(entity))
       
-      await this.collection.insertOne(cleanDoc)
-      Logger.info(`💾 Created entity ${entity.id} in MongoDB`)
+      try {
+        await this.collection.insertOne(cleanDoc)
+        Logger.info(`💾 Created entity ${entity.id} in MongoDB`)
+      } catch (error) {
+        if (error.code === 11000 && error.keyPattern && error.keyPattern['meta.slug']) {
+          throw new Error(`Slug conflict: Another entity already exists with slug '${entity.meta.slug}'`)
+        }
+        throw error
+      }
+    }
+  }
+
+  /// Handle slug namespace conflicts
+  /// @param entity - The entity being saved
+  /// @param existing - The existing entity (if any)
+  /// @param options - Save options including conflict resolution strategy
+  async handleSlugConflict(entity, existing, options) {
+    const slug = entity.meta.slug
+    const conflictStrategy = options.slugConflict || 'reject' // 'reject', 'replace', 'update'
+    
+    // Find any existing entity with this slug (excluding the current entity)
+    const conflictingEntity = await this.collection.findOne({ 
+      'meta.slug': slug,
+      id: { $ne: entity.id }
+    })
+    
+    if (conflictingEntity) {
+      Logger.warn(`🔗 Slug conflict detected: '${slug}' already exists on entity ${conflictingEntity.id}`)
+      
+      switch (conflictStrategy) {
+        case 'reject':
+          throw new Error(`Slug namespace conflict: '${slug}' is already taken by entity ${conflictingEntity.id}`)
+        
+        case 'replace':
+          // Remove the slug from the conflicting entity
+          await this.collection.updateOne(
+            { id: conflictingEntity.id },
+            { $unset: { 'meta.slug': '' } }
+          )
+          Logger.info(`🔗 Removed slug '${slug}' from conflicting entity ${conflictingEntity.id}`)
+          break
+        
+        case 'update':
+          // If this is an update to an existing entity, allow it
+          if (existing) {
+            Logger.info(`🔗 Allowing slug update for existing entity ${entity.id}`)
+          } else {
+            throw new Error(`Slug namespace conflict: '${slug}' is already taken by entity ${conflictingEntity.id}`)
+          }
+          break
+          
+        default:
+          throw new Error(`Unknown slug conflict strategy: ${conflictStrategy}`)
+      }
     }
   }
 

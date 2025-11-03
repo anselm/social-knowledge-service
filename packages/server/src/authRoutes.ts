@@ -3,7 +3,7 @@ import {
   makeNonce, 
   verifyAuth, 
   extractAuthFromRequest 
-} from "./auth.js";
+} from "@social/knowledge";
 import { Logger } from "./logger.js";
 
 // Type definitions for authentication
@@ -60,9 +60,9 @@ export function registerAuthRoutes(app: FastifyInstance) {
         return;
       }
 
-      Logger.info(`Verifying authentication of type: ${authData.type || 'unknown'}`);
+      Logger.info(`Verifying authentication of type: ${(authData as any).type || 'unknown'}`);
       
-      const verifiedUser = await verifyAuth(authData) as VerifiedUser;
+      const verifiedUser = await verifyAuth(authData as any) as VerifiedUser;
       
       Logger.info(`Authentication successful for user: ${verifiedUser.userId}`);
       
@@ -100,7 +100,7 @@ export function registerAuthRoutes(app: FastifyInstance) {
         };
       }
 
-      const verifiedUser = await verifyAuth(authData) as VerifiedUser;
+      const verifiedUser = await verifyAuth(authData as any) as VerifiedUser;
       
       return {
         success: true,
@@ -146,7 +146,7 @@ export function registerAuthRoutes(app: FastifyInstance) {
         };
       }
 
-      const verifiedUser = await verifyAuth(authData) as VerifiedUser;
+      const verifiedUser = await verifyAuth(authData as any) as VerifiedUser;
       
       return {
         success: true,

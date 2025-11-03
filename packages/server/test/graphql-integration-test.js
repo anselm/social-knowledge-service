@@ -60,12 +60,13 @@ async function testGraphQLIntegration() {
     // Test 3: Add a test entity via Knowledge and query via GraphQL
     await Knowledge.addEntity({
       id: 'graphql-server-test',
+      kind: 'thing',
       meta: {
-        label: 'GraphQL Server Test'
-      },
-      thing: {
-        category: 'test',
-        label: 'GraphQL Server Test'
+        label: 'GraphQL Server Test',
+        props: {
+          category: 'test',
+          label: 'GraphQL Server Test'
+        }
       },
       location: {
         lat: 37.7749,
@@ -88,8 +89,8 @@ async function testGraphQLIntegration() {
                 id
                 meta {
                   label
+                  props
                 }
-                thing
               }
               ... on Party {
                 id
@@ -104,9 +105,15 @@ async function testGraphQLIntegration() {
                 }
               }
               ... on Edge {
-                subject
-                predicate
-                object
+                id
+                meta {
+                  label
+                }
+                relation {
+                  subject
+                  predicate
+                  object
+                }
               }
             }
           }

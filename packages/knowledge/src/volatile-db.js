@@ -1,3 +1,6 @@
+
+// @todo deprecated delete
+
 import { uuidv7 } from 'uuidv7'
 import { Logger } from './logger.js'
 import { Perms } from './perms.js'

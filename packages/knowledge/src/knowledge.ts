@@ -13,8 +13,6 @@ let initialized = false
 
 export class Knowledge {
   
-  // Make sure that the knowledge services are registered with the event handling backbone
-
   static async _initialize() {
     if(initialized) return
     initialized = true
@@ -26,32 +24,37 @@ export class Knowledge {
   ///
   /// Create or update an entity
   /// @param entity - Entity object with optional id (will auto-generate if not provided)
-  /// @param options - Options including validation settings and creator information
+  /// @param options - Options including validation settings
   /// @returns Promise<void>
+  /// 
+  /// Automatically manages:
+  /// - Created/updated timestamps in entity.meta
+  /// - Default label generation
+  /// - Permission checking for updates (based on entity.meta.creatorAddress)
   ///
 
   static async addEntity(entity: {
     id?: string
-    name?: string
-    type?: string
-    slug?: string
-    data?: any
+    kind?: string
     [key: string]: any
   }, options: {
-    creatorAddress?: string
     validation?: boolean
+    kind?: string
     [key: string]: any
   } = {}): Promise<void> {
     await Knowledge._initialize()
     
     // Check if this is an update to an existing entity
+    let isUpdate = false
+    let existingEntity = null
     if (entity.id) {
-      const existingEntity = await Knowledge.getEntityById(entity.id)
+      existingEntity = await Knowledge.getEntityById(entity.id)
       
       if (existingEntity) {
+        isUpdate = true
         // Entity exists - check creator ownership
         const existingCreator = existingEntity.meta?.creatorAddress
-        const requestingCreator = options.creatorAddress
+        const requestingCreator = entity.meta?.creatorAddress
         
         if (existingCreator && requestingCreator && existingCreator !== requestingCreator) {
           throw new Error(`Access denied: Entity '${entity.id}' can only be modified by its creator (${existingCreator})`)
@@ -61,19 +64,52 @@ export class Knowledge {
       }
     }
     
-    // Auto-inject creator address into metadata if provided
-    if (options.creatorAddress && entity.meta) {
-      entity.meta.creatorAddress = options.creatorAddress
-    } else if (options.creatorAddress && !entity.meta) {
-      // Create minimal meta with creator address if meta doesn't exist
-      entity.meta = {
-        label: entity.name || entity.id || 'Untitled',
-        creatorAddress: options.creatorAddress
+    // Initialize meta object if it doesn't exist
+    if (!entity.meta) {
+      entity.meta = {}
+    }
+    
+    // Manage entity.kind field
+    // Priority: 1) explicit options.kind, 2) existing entity.kind, 3) preserved from existing entity, 4) auto-detect, 5) default 'thing'
+    if (options.kind) {
+      // Explicit kind provided in options
+      entity.kind = options.kind
+      Logger.info(`🏷️  Entity kind set to '${entity.kind}' via options`)
+    } else if (entity.kind) {
+      Logger.info(`🏷️  Entity kind already set to '${entity.kind}'`)
+    } else {
+      // No kind set on entity, try to determine it
+      if (isUpdate && existingEntity?.kind) {
+        // For updates, preserve existing kind unless explicitly overridden
+        entity.kind = existingEntity.kind
+        Logger.info(`🏷️  Entity kind preserved as '${entity.kind}' from existing entity`)
+      } else {
+        // Default to thing
+        entity.kind = "thing"
+        Logger.info(`🏷️  Entity kind auto-detected as '${entity.kind}'`)
       }
     }
     
+    // Set default label if missing
+    if (!entity.meta.label) {
+      entity.meta.label = entity.name || entity.id || 'Untitled'
+    }
+    
+    // Auto-manage timestamps
+    const now = new Date().toISOString()
+    
+    if (!isUpdate) {
+      // New entity - set created timestamp
+      entity.meta.created = now
+      entity.meta.updated = now
+    } else {
+      // Existing entity - only update the updated timestamp
+      entity.meta.updated = now
+      // Preserve existing created timestamp if it exists
+    }
+    
     await mongoManager.saveEntity(entity, options)
-    Logger.info(`💾 Entity ${entity.id || 'auto-generated'} added/updated ${options.creatorAddress ? `by ${options.creatorAddress}` : ''}`)
+    Logger.info(`💾 Entity ${entity.id || 'auto-generated'} added/updated ${entity.meta?.creatorAddress ? `by ${entity.meta.creatorAddress}` : ''}`)
   }
 
   ///
@@ -97,10 +133,24 @@ export class Knowledge {
 
   static async getEntityBySlug(slug: string): Promise<any | null> {
     await Knowledge._initialize()
-    const results = await mongoManager.queryEntities({ slug })
+    const results = await mongoManager.queryEntities({ "meta.slug": slug })
     const entity = results?.[0] || null
     Logger.info(`🎯 Entity with slug '${slug}': ${entity ? 'found' : 'not found'}`)
     return entity
+  }
+
+  ///
+  /// Check if a slug is available (not taken by any entity)
+  /// @param slug - The slug to check
+  /// @returns Promise<boolean> - true if slug is available, false if taken
+  ///
+
+  static async isSlugAvailable(slug: string): Promise<boolean> {
+    await Knowledge._initialize()
+    const results = await mongoManager.queryEntities({ "meta.slug": slug })
+    const available = !results || results.length === 0
+    Logger.info(`🔗 Slug '${slug}': ${available ? 'available' : 'taken'}`)
+    return available
   }
 
   ///
@@ -164,10 +214,11 @@ export class Knowledge {
     const existingCreator = existingEntity.meta?.creatorAddress
     const requestingCreator = options.creatorAddress
     
+    // @todo consolidate security and allow more flexibility
     if (existingCreator && requestingCreator && existingCreator !== requestingCreator) {
       throw new Error(`Access denied: Entity '${id}' can only be modified by its creator (${existingCreator})`)
     }
-    
+  
     Logger.info(`🔒 Update authorized for entity '${id}' by creator ${requestingCreator || 'anonymous'}`)
     
     await mongoManager.saveEntity({ 
@@ -201,6 +252,7 @@ export class Knowledge {
     const existingCreator = existingEntity.meta?.creatorAddress
     const requestingCreator = options.creatorAddress
     
+    // @todo consolidate security and allow more flexibility
     if (existingCreator && requestingCreator && existingCreator !== requestingCreator) {
       throw new Error(`Access denied: Entity '${id}' can only be deleted by its creator (${existingCreator})`)
     }
@@ -238,7 +290,7 @@ export class Knowledge {
   /// @param lat - Latitude
   /// @param lon - Longitude  
   /// @param maxDistance - Maximum distance in meters (default: 10000)
-  /// @param options - Additional query options (limit, offset, entityType, etc.)
+  /// @param options - Additional query options (limit, offset, etc.)
   /// @returns Promise<Array> - Array of nearby entities
   ///
 
@@ -258,7 +310,7 @@ export class Knowledge {
   ///
   /// Find entities active during a time range
   /// @param timeQuery - Time query object { after?, before?, during? }
-  /// @param options - Additional query options (limit, offset, entityType, etc.)
+  /// @param options - Additional query options (limit, offset, etc.)
   /// @returns Promise<Array> - Array of matching entities
   ///
 
@@ -282,7 +334,7 @@ export class Knowledge {
   ///
   /// Create a relationship between two entities
   /// @param subject - ID of the subject entity
-  /// @param predicate - Type of relationship (e.g., 'contains', 'memberOf', 'likes')
+  /// @param predicate - flavor of relationship (e.g., 'contains', 'memberOf', 'likes')
   /// @param object - ID of the object entity
   /// @param options - Additional options (creatorAddress, edge data, etc.)
   /// @returns Promise<Object> - The created relationship

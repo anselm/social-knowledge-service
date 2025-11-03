@@ -26,12 +26,13 @@ async function testCreatorBinding() {
       },
       payload: JSON.stringify({
         id: 'test-anonymous-entity',
+        kind: 'thing',
         meta: {
-          label: 'Anonymous Test Entity'
-        },
-        thing: {
-          category: 'test',
-          label: 'Anonymous Entity'
+          label: 'Anonymous Test Entity',
+          props: {
+            category: 'test',
+            label: 'Anonymous Entity'
+          }
         }
       })
     });
@@ -68,12 +69,13 @@ Issued At: ${new Date().toISOString()}`,
       },
       payload: JSON.stringify({
         id: 'test-auth-entity',
+        kind: 'thing',
         meta: {
-          label: 'Authenticated Test Entity'
-        },
-        thing: {
-          category: 'test',
-          label: 'Auth Entity'
+          label: 'Authenticated Test Entity',
+          props: {
+            category: 'test',
+            label: 'Auth Entity'
+          }
         }
       })
     });
@@ -86,15 +88,15 @@ Issued At: ${new Date().toISOString()}`,
     
     await Knowledge.addEntity({
       id: 'test-creator-direct',
+      kind: 'thing',
       meta: {
-        label: 'Direct Creator Test'
-      },
-      thing: {
-        category: 'test',
-        label: 'Direct Test Entity'
+        label: 'Direct Creator Test',
+        creatorAddress: '0xtest1234567890123456789012345678901234567890',
+        props: {
+          category: 'test',
+          label: 'Direct Test Entity'
+        }
       }
-    }, {
-      creatorAddress: '0xtest1234567890123456789012345678901234567890'
     });
     
     console.log('✅ Direct creator binding completed');
@@ -129,13 +131,14 @@ Issued At: ${new Date().toISOString()}`,
     try {
       await Knowledge.addEntity({
         id: 'test-schema-validation',
+        kind: 'thing',
         meta: {
           label: 'Schema Test',
-          creatorAddress: '0xschematest1234567890123456789012345678901234567890'
-        },
-        thing: {
-          category: 'validation',
-          label: 'Schema Validation Test'
+          creatorAddress: '0xschematest1234567890123456789012345678901234567890',
+          props: {
+            category: 'validation',
+            label: 'Schema Validation Test'
+          }
         }
       });
       console.log('✅ Schema validation passed with creatorAddress');

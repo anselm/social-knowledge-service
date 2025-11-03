@@ -1,11 +1,13 @@
 import type { FastifyInstance } from "fastify";
-import { Knowledge } from "../../knowledge/dist/knowledge.js";
+import { Knowledge, extractAuthFromRequest, verifyAuth } from "@social/knowledge";
 import { Logger } from "./logger.js";
-import { extractAuthFromRequest, verifyAuth } from "./auth.js";
 
 export function registerRoutes(app: FastifyInstance) {
 
-  // GET /api/health - Health check endpoint
+  // Health check endpoint for docker
+  app.get("/healthz", async () => ({ ok: true }));
+
+  // GET /api/health - Health check endpoint for web client
   app.get("/api/health", async (request, reply) => {
     try {
       // Basic health check - could be expanded to check database connectivity, etc.
@@ -126,6 +128,24 @@ export function registerRoutes(app: FastifyInstance) {
     }
   });
 
+  // GET /api/entities/slug-available/:slug - Check if slug is available
+  app.get("/api/entities/slug-available/:slug", async (request, reply) => {
+    try {
+      const { slug } = request.params as { slug: string };
+      const decodedSlug = '/' + decodeURIComponent(slug);
+      const available = await Knowledge.isSlugAvailable(decodedSlug);
+      return { 
+        success: true, 
+        available, 
+        slug: decodedSlug,
+        message: available ? 'Slug is available' : 'Slug is already taken'
+      };
+    } catch (error) {
+      Logger.error(`Error checking slug availability for ${(request.params as any).slug}:`, error);
+      reply.status(500).send({ success: false, error: "Failed to check slug availability" });
+    }
+  });
+
   // GET /api/entities/:id - Get entity by ID
   app.get("/api/entities/:id", async (request, reply) => {
     try {
@@ -145,15 +165,29 @@ export function registerRoutes(app: FastifyInstance) {
   // POST /api/entities - Create or update entity
   app.post("/api/entities", async (request, reply) => {
     try {
-      const entity = request.body as any;
+      // Handle both old format (direct entity) and new format (with validation option)
+      const requestBody = request.body as any;
+      const entity = requestBody.entity || requestBody;
+      const validate = requestBody.validate !== false; // Default to true unless explicitly false
+      const slugConflict = requestBody.slugConflict || 'reject'; // Default conflict strategy
+      const kind = requestBody.kind || entity.kind; // Extract kind from request or entity
+      
+      // Debug: Log request details
+      console.log('POST /api/entities - Headers:', JSON.stringify(request.headers, null, 2));
+      console.log('POST /api/entities - Body:', JSON.stringify(requestBody, null, 2));
+      console.log('POST /api/entities - Validation enabled:', validate);
+      console.log('POST /api/entities - Slug conflict strategy:', slugConflict);
+      console.log('POST /api/entities - Entity kind:', kind);
       
       // Check for authentication and extract creator address
       const authData = extractAuthFromRequest(request);
+      console.log('Extracted auth data:', authData);
+      
       let creatorAddress = null;
       
       if (authData) {
         try {
-          const user = await verifyAuth(authData) as any;
+          const user = await verifyAuth(authData as any) as any;
           creatorAddress = user.creatorAddress;
           Logger.info(`Creating entity with creator: ${creatorAddress}`);
         } catch (error) {
@@ -162,16 +196,26 @@ export function registerRoutes(app: FastifyInstance) {
         }
       }
       
-      // Pass creator address to Knowledge layer
-      await Knowledge.addEntity(entity, { creatorAddress });
+      // Add creator address to entity metadata if authenticated
+      if (creatorAddress) {
+        if (!entity.meta) {
+          entity.meta = {};
+        }
+        entity.meta.creatorAddress = creatorAddress;
+      }
+      
+      // Pass validation option and kind to Knowledge layer
+      await Knowledge.addEntity(entity, { validate, slugConflict, kind });
       
       return { 
         success: true, 
         message: "Entity created/updated successfully",
-        createdBy: creatorAddress || 'anonymous'
+        createdBy: creatorAddress || 'anonymous',
+        kind: kind || 'auto-detected'
       };
     } catch (error) {
       Logger.error("Error creating/updating entity:", error);
+      console.log("Full error details:", error);
       reply.status(500).send({ success: false, error: "Failed to create/update entity" });
     }
   });
@@ -181,6 +225,7 @@ export function registerRoutes(app: FastifyInstance) {
     try {
       const { id } = request.params as { id: string };
       const updates = request.body as any;
+      const kind = updates.kind; // Extract kind from updates
       
       // Require authentication for updates
       const authData = extractAuthFromRequest(request);
@@ -194,7 +239,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       let creatorAddress = null;
       try {
-        const user = await verifyAuth(authData) as any;
+        const user = await verifyAuth(authData as any) as any;
         creatorAddress = user.creatorAddress;
         Logger.info(`Updating entity ${id} with creator: ${creatorAddress}`);
       } catch (error) {
@@ -207,13 +252,23 @@ export function registerRoutes(app: FastifyInstance) {
         return;
       }
       
-      // Pass creator address to Knowledge layer for ownership check
-      await Knowledge.updateEntity(id, updates, { creatorAddress });
+      // Use addEntity for updates to ensure proper kind management
+      // Include the id in the updates to trigger update logic
+      const entityToUpdate = { id, ...updates };
+      
+      // Add creator address to entity metadata
+      if (!entityToUpdate.meta) {
+        entityToUpdate.meta = {};
+      }
+      entityToUpdate.meta.creatorAddress = creatorAddress;
+      
+      await Knowledge.addEntity(entityToUpdate, { kind });
       
       return { 
         success: true, 
         message: "Entity updated successfully",
-        updatedBy: creatorAddress
+        updatedBy: creatorAddress,
+        kind: kind || 'preserved'
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -250,7 +305,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       let creatorAddress = null;
       try {
-        const user = await verifyAuth(authData) as any;
+        const user = await verifyAuth(authData as any) as any;
         creatorAddress = user.creatorAddress;
         Logger.info(`Deleting entity ${id} with creator: ${creatorAddress}`);
       } catch (error) {
@@ -303,7 +358,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       if (authData) {
         try {
-          user = await verifyAuth(authData);
+          user = await verifyAuth(authData as any);
           Logger.info(`Authenticated request from: ${user.userId}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -354,7 +409,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       if (authData) {
         try {
-          user = await verifyAuth(authData);
+          user = await verifyAuth(authData as any);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           Logger.warn(`Authentication failed during relationship creation: ${errorMessage}`);
@@ -383,10 +438,10 @@ export function registerRoutes(app: FastifyInstance) {
         return;
       }
 
-      // Add creator address to the relationship
+      // Add creator address and other options to the relationship
       const options = {
         creatorAddress: user.creatorAddress,
-        ...relationshipData.edge && { edge: relationshipData.edge },
+        // Pass rank and weight directly (they'll be mapped to relation object in relationship manager)
         ...relationshipData.rank && { rank: relationshipData.rank },
         ...relationshipData.weight && { weight: relationshipData.weight }
       };
@@ -582,7 +637,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       if (authData) {
         try {
-          user = await verifyAuth(authData);
+          user = await verifyAuth(authData as any);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           Logger.warn(`Authentication failed during relationship deletion: ${errorMessage}`);
@@ -647,7 +702,7 @@ export function registerRoutes(app: FastifyInstance) {
       
       if (authData) {
         try {
-          user = await verifyAuth(authData);
+          user = await verifyAuth(authData as any);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           Logger.warn(`Authentication failed during bulk relationship deletion: ${errorMessage}`);
@@ -687,7 +742,4 @@ export function registerRoutes(app: FastifyInstance) {
       });
     }
   });
-
-  // Health check endpoint
-  app.get("/healthz", async () => ({ ok: true }));
 }

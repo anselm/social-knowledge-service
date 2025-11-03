@@ -4,6 +4,7 @@ import fastifyCors from "@fastify/cors";
 import { Logger } from "./logger.js";
 import { Knowledge } from "../../knowledge/dist/knowledge.js";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { registerRoutes } from "./httpRoutes.js";
@@ -44,8 +45,16 @@ export async function createServer() {
   await fastify.register(registerRoutes);
 
   // Static file serving for the web app
-  // @todo the path for this should be an environment variable or generic somehow
-  const publicPath = path.resolve(__dirname, "../../web-fancy/dist");
+  const webPackage = process.env.WEB_PACKAGE || 'web';
+  const publicPath = path.resolve(__dirname, `../../${webPackage}/dist`);
+  
+  // Check if the web package dist directory exists
+  try {
+    fs.accessSync(publicPath);
+  } catch {
+    throw new Error(`Web package 'packages/${webPackage}' dist directory not found at ${publicPath}. Set WEB_PACKAGE environment variable or create packages/web.`);
+  }
+  
   await fastify.register(fastifyStatic, {
     root: publicPath,
     prefix: "/",

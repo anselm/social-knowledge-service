@@ -8,14 +8,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'mono': ['Consolas', 'Monaco', 'monospace'],
+        'mono': ['JetBrains Mono', 'Consolas', 'Monaco', 'monospace'],
       },
       maxWidth: {
         'container': '1000px',
-      }
+      },
     },
   },
   plugins: [],
 }
-
-

@@ -33,11 +33,11 @@ class RelationshipManager {
       
       // Create indexes for efficient relationship queries
       await this.relationshipsCollection.createIndex({ id: 1 }, { unique: true })
-      await this.relationshipsCollection.createIndex({ subject: 1 })
-      await this.relationshipsCollection.createIndex({ object: 1 })
-      await this.relationshipsCollection.createIndex({ predicate: 1 })
-      await this.relationshipsCollection.createIndex({ subject: 1, predicate: 1 })
-      await this.relationshipsCollection.createIndex({ object: 1, predicate: 1 })
+      await this.relationshipsCollection.createIndex({ "relation.subject": 1 })
+      await this.relationshipsCollection.createIndex({ "relation.object": 1 })
+      await this.relationshipsCollection.createIndex({ "relation.predicate": 1 })
+      await this.relationshipsCollection.createIndex({ "relation.subject": 1, "relation.predicate": 1 })
+      await this.relationshipsCollection.createIndex({ "relation.object": 1, "relation.predicate": 1 })
       
       Logger.info('🔗 Relationships collection initialized with indexes')
       
@@ -53,7 +53,8 @@ class RelationshipManager {
   /// @param {string} relationshipData.predicate - Type of relationship (e.g., 'contains', 'memberOf')
   /// @param {string} relationshipData.object - ID of the object entity
   /// @param {string} [relationshipData.creatorAddress] - Address of the creator
-  /// @param {Object} [relationshipData.edge] - Additional edge-specific data
+  /// @param {number} [relationshipData.rank] - Optional ranking for ordering
+  /// @param {number} [relationshipData.weight] - Optional weight for scoring
   /// @returns Promise<Object> - The created relationship
   async createRelationship(relationshipData) {
     await this.initialize()
@@ -63,20 +64,25 @@ class RelationshipManager {
     
     const relationship = {
       id,
-      subject: relationshipData.subject,
-      predicate: relationshipData.predicate,
-      object: relationshipData.object,
-      time: {
-        begins: new Date().toISOString()
-      },
-      ...relationshipData.creatorAddress && {
-        meta: {
+      kind: "edge",
+      meta: {
+        label: `${relationshipData.subject} ${relationshipData.predicate} ${relationshipData.object}`,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        ...relationshipData.creatorAddress && {
           creatorAddress: relationshipData.creatorAddress
         }
       },
-      ...relationshipData.edge && { edge: relationshipData.edge },
-      ...relationshipData.rank && { rank: relationshipData.rank },
-      ...relationshipData.weight && { weight: relationshipData.weight }
+      time: {
+        begins: new Date().toISOString()
+      },
+      relation: {
+        subject: relationshipData.subject,
+        predicate: relationshipData.predicate,
+        object: relationshipData.object,
+        ...relationshipData.rank && { rank: relationshipData.rank },
+        ...relationshipData.weight && { weight: relationshipData.weight }
+      }
     }
     
     // Validate against edge schema
@@ -88,19 +94,19 @@ class RelationshipManager {
     
     // Check if relationship already exists
     const existing = await this.relationshipsCollection.findOne({
-      subject: relationship.subject,
-      predicate: relationship.predicate,
-      object: relationship.object
+      "relation.subject": relationship.relation.subject,
+      "relation.predicate": relationship.relation.predicate,
+      "relation.object": relationship.relation.object
     })
     
     if (existing) {
-      throw new Error(`Relationship already exists: ${relationship.subject} ${relationship.predicate} ${relationship.object}`)
+      throw new Error(`Relationship already exists: ${relationship.relation.subject} ${relationship.relation.predicate} ${relationship.relation.object}`)
     }
     
     // Insert the relationship
     await this.relationshipsCollection.insertOne(relationship)
     
-    Logger.info(`🔗 Created relationship: ${relationship.subject} ${relationship.predicate} ${relationship.object}`)
+    Logger.info(`🔗 Created relationship: ${relationship.relation.subject} ${relationship.relation.predicate} ${relationship.relation.object}`)
     return relationship
   }
 
@@ -111,9 +117,9 @@ class RelationshipManager {
   async getRelationshipsBySubject(subjectId, predicate) {
     await this.initialize()
     
-    const query = { subject: subjectId }
+    const query = { "relation.subject": subjectId }
     if (predicate) {
-      query.predicate = predicate
+      query["relation.predicate"] = predicate
     }
     
     const relationships = await this.relationshipsCollection.find(query).toArray()
@@ -128,9 +134,9 @@ class RelationshipManager {
   async getRelationshipsByObject(objectId, predicate) {
     await this.initialize()
     
-    const query = { object: objectId }
+    const query = { "relation.object": objectId }
     if (predicate) {
-      query.predicate = predicate
+      query["relation.predicate"] = predicate
     }
     
     const relationships = await this.relationshipsCollection.find(query).toArray()
@@ -143,7 +149,7 @@ class RelationshipManager {
   /// @returns Promise<Array> - Array of child entity IDs
   async getChildren(parentId) {
     const relationships = await this.getRelationshipsBySubject(parentId, 'contains')
-    return relationships.map(rel => rel.object)
+    return relationships.map(rel => rel.relation.object)
   }
 
   /// Get parent of a child entity (entity that contains this entity)
@@ -151,7 +157,7 @@ class RelationshipManager {
   /// @returns Promise<string|null> - ID of parent entity or null
   async getParent(childId) {
     const relationships = await this.getRelationshipsByObject(childId, 'contains')
-    return relationships.length > 0 ? relationships[0].subject : null
+    return relationships.length > 0 ? relationships[0].relation.subject : null
   }
 
   /// Delete a specific relationship
@@ -191,8 +197,8 @@ class RelationshipManager {
     
     const query = {
       $or: [
-        { subject: entityId },
-        { object: entityId }
+        { "relation.subject": entityId },
+        { "relation.object": entityId }
       ]
     }
     
@@ -217,7 +223,7 @@ class RelationshipManager {
     
     const query = {}
     if (filters.predicate) {
-      query.predicate = filters.predicate
+      query["relation.predicate"] = filters.predicate
     }
     if (filters.creatorAddress) {
       query['meta.creatorAddress'] = filters.creatorAddress

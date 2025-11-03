@@ -13,12 +13,13 @@ async function testValidation() {
     console.log('\n📦 Testing valid thing entity...')
     const validThing = {
       id: 'test-gadget',
+      kind: 'thing',
       meta: {
         label: 'Test Gadget',
-        content: 'A cool test device'
-      },
-      thing: {
-        category: 'electronics'
+        content: 'A cool test device',
+        props: {
+          category: 'electronics'
+        }
       }
     }
     
@@ -54,12 +55,13 @@ async function testValidation() {
     console.log('\n👤 Testing valid party entity...')
     const validParty = {
       id: 'john-doe',
+      kind: 'party',
       meta: {
-        label: 'John Doe'
-      },
-      party: {
-        firstName: 'John',
-        lastName: 'Doe'
+        label: 'John Doe',
+        props: {
+          firstName: 'John',
+          lastName: 'Doe'
+        }
       }
     }
     
@@ -74,13 +76,14 @@ async function testValidation() {
     console.log('\n👥 Testing valid group entity...')
     const validGroup = {
       id: 'my-community',
+      kind: 'group',
       meta: {
         label: 'My Community',
-        content: 'A great community for developers'
-      },
-      group: {
-        type: 'community',
-        memberCount: 42
+        content: 'A great community for developers',
+        props: {
+          type: 'community',
+          memberCount: 42
+        }
       }
     }
     
@@ -95,9 +98,15 @@ async function testValidation() {
     console.log('\n🔗 Testing valid edge entity...')
     const validEdge = {
       id: 'relationship-1',
-      subject: 'john-doe',
-      predicate: 'memberOf',
-      object: 'my-community'
+      kind: 'edge',
+      meta: {
+        label: 'Membership Relationship'
+      },
+      relation: {
+        subject: 'john-doe',
+        predicate: 'memberOf',
+        object: 'my-community'
+      }
     }
     
     const result5 = schemaManager.validate('ka://schemas/core/edge/1.0.0', validEdge)

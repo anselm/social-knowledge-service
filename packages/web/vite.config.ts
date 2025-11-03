@@ -1,4 +1,4 @@
-
+// vite.config.js
 import { defineConfig, loadEnv } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
@@ -22,13 +22,14 @@ function buildInfoPlugin() {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const isDev = mode === 'development';
   
   return {
     plugins: [
       buildInfoPlugin(),
       svelte({ 
         preprocess: vitePreprocess(),
-        hot: false,
+        hot: isDev, // Enable hot reloading in development
         emitCss: true
       }),
     ],
@@ -37,15 +38,15 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.CLIENTPORT || '8000'),
       proxy: {
         '/api': {
-          target: env.VITE_API_BASE_URL || `http://localhost:${env.PORT || '8080'}`,
+          target: env.API_BASE_URL || `http://localhost:${env.PORT || '8080'}`,
           changeOrigin: true
         }
       },
-      hmr: false,
+      hmr: isDev, // Enable HMR in development
       // SPA fallback - serve index.html for all routes
       historyApiFallback: {
         rewrites: [
-          { from: /^\/api\/.*$/, to: (context: any) => context.parsedUrl.path },
+          { from: /^\/api\/.*$/, to: context => context.parsedUrl.path },
           { from: /./, to: '/index.html' }
         ]
       }
@@ -55,12 +56,11 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000,
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: false,
+      sourcemap: isDev, // Enable source maps in development
       rollupOptions: {
-        input: 'src/index.html',
         output: {
           manualChunks: {
-            vendor: ['svelte','svelte-routing']
+            vendor: ['svelte']
           }
         }
       },

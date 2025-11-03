@@ -23,6 +23,8 @@ const CoordinatesType = new GraphQLScalarType({
 })
 
 // GraphQL Type Definitions
+// @todo these are hardcoded and must be replaced with dynamically generated
+
 const typeDefs = `
   scalar DateTime
   scalar JSON
@@ -40,6 +42,7 @@ const typeDefs = `
     provenance: String
     sponsorId: String
     permissions: Permission
+    props: JSON
   }
 
   enum Permission {
@@ -97,6 +100,7 @@ const typeDefs = `
   # Entity types
   type Thing {
     id: String!
+    kind: String!
     meta: Meta!
     time: Time
     location: Location
@@ -107,6 +111,7 @@ const typeDefs = `
 
   type Party {
     id: String!
+    kind: String!
     meta: Meta!
     time: Time
     location: Location
@@ -117,6 +122,7 @@ const typeDefs = `
 
   type Place {
     id: String!
+    kind: String!
     meta: Meta!
     time: Time
     location: Location
@@ -127,6 +133,7 @@ const typeDefs = `
 
   type Group {
     id: String!
+    kind: String!
     meta: Meta!
     time: Time
     location: Location
@@ -135,19 +142,36 @@ const typeDefs = `
     group: JSON
   }
 
+  type Org {
+    id: String!
+    kind: String!
+    meta: Meta!
+    time: Time
+    location: Location
+    address: Address
+    stats: Stats
+    org: JSON
+  }
+
   type Edge {
-    id: String
+    id: String!
+    kind: String!
+    meta: Meta!
+    time: Time
+    relation: Relation
+  }
+
+  # Relation data for edges
+  type Relation {
     subject: String!
     predicate: String!
     object: String!
-    time: Time
     rank: Int
     weight: Int
-    edge: JSON
   }
 
   # Union type for all entities
-  union Entity = Thing | Party | Place | Group | Edge
+  union Entity = Thing | Party | Place | Group | Org | Edge
 
   # Query inputs
   input NearbyInput {
@@ -208,18 +232,19 @@ const typeDefs = `
 
 // Helper function to determine entity type from data
 function getEntityType(entity) {
-  if (entity.thing) return 'Thing'
-  if (entity.party) return 'Party'  
-  if (entity.group) return 'Group'
-  if (entity.place) return 'Place'
-  if (entity.subject && entity.predicate && entity.object) return 'Edge'
-  return null
+  // Use the kind field if available (new schema)
+  if (entity.kind) {
+    // Capitalize first letter for GraphQL type name
+    return entity.kind.charAt(0).toUpperCase() + entity.kind.slice(1)
+  }
+  
+  return 'Thing' // Default fallback
 }
 
 // Helper function to add __typename for union resolution
 function addTypename(entity) {
   const type = getEntityType(entity)
-  return type ? { ...entity, __typename: type } : entity
+  return { ...entity, __typename: type }
 }
 
 // GraphQL Resolvers

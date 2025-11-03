@@ -4,47 +4,16 @@
 
 Entity management library with JSON schema validation for social artifacts (posts, people, places, things, collections). Supports SIWE authentication and MongoDB storage.
 
+Refer to the ongoing thoughts around [DESIGN](DESIGN.md) here.
+
 ## Features
 
-- **JSON Schema Validation** - Automatic validation using AJV with 9 core schemas
+- **JSON Schema Validation** - Automatic validation using AJV with several core schemas
 - **MongoDB Integration** - Direct operations without event bus dependency  
-- **Entity Types** - thing, party, group, edge with shared meta/time/location/address/stats
-- **SIWE Authentication** - Sign in With Ethereum (ERC-4361)
-- **Structured Logging** - Uses Pino for fast, structured JSON logging
+- **Entity Types** - thing, party, group, edge...
 - **Spatial Queries** - GeoJSON Point auto-generation and MongoDB 2dsphere indexing
 - **Temporal Queries** - Time range queries with automatic date parsing
 - **Pagination** - Built-in limit/offset support for large result sets
-
-## Quick Start
-
-```javascript
-import { Knowledge } from '@social/knowledge'
-
-// Create entity with validation
-await Knowledge.addEntity({
-  meta: { label: 'My Cool Gadget' },
-  location: { lat: 37.7749, lon: -122.4194 }, // Auto-generates GeoJSON point
-  thing: { category: 'electronics' }
-})
-
-// Spatial queries - find nearby entities
-const nearby = await Knowledge.findNearby(37.7749, -122.4194, 10000) // 10km radius
-
-// Temporal queries - find events in time range
-const activeEvents = await Knowledge.findByTimeRange({
-  during: '2025-11-01T00:00:00Z'
-})
-
-// Pagination support
-const results = await Knowledge.queryEntities({ 
-  type: 'thing', 
-  limit: 10, 
-  offset: 20 
-})
-
-// Manual validation
-const result = await Knowledge.validateEntity(entity)
-```
 
 ## Configuration
 
@@ -63,8 +32,56 @@ npm run test:schemas    # Test schema loading
 npm run test:validation # Test validation logic
 ```
 
-## Documentation
+## General usage
 
-- [Design Document](20251102-DESIGN.md)
-- [Schema Validation Guide](SCHEMA_VALIDATION.md)  
-- [API Documentation](docs/)
+```javascript
+import { Knowledge } from '@social/knowledge'
+
+// Create entity with validation
+await Knowledge.addEntity({
+  meta: { label: 'My Cool Gadget', props: { vendor:'alibaba' } },
+  location: { lat: 37.7749, lon: -122.4194 }
+})
+
+// Update existing entity
+await Knowledge.addEntity({
+  id: 'existing-entity-id',
+  meta: { label: 'Updated Gadget' }
+})
+
+// Spatial queries - find nearby entities
+const nearby = await Knowledge.findNearby(37.7749, -122.4194, 10000)
+
+// Temporal queries - find events in time range
+const activeEvents = await Knowledge.findByTimeRange({
+  during: '2025-11-01T00:00:00Z'
+})
+
+// Pagination support
+const results = await Knowledge.queryEntities({ 
+  type: 'thing', 
+  limit: 10, 
+  offset: 20 
+})
+
+// Validation
+const result = await Knowledge.validateEntity(entity)
+
+// Create entity
+await Knowledge.addEntity({ 
+  meta: { 
+    label: 'My Entity',
+    creatorAddress: '0x123...'
+  }
+})
+
+// Update entity (5 minutes later)
+await Knowledge.addEntity({ 
+  id: 'entity-id',
+  meta: { 
+    label: 'Updated Entity',
+    creatorAddress: '0x123...'
+  }
+})
+```
+

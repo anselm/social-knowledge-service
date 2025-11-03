@@ -13,13 +13,15 @@ A social knowledge service.
 - `@social/orbital`   — pubsub event messaging backbone
 - `@social/knowledge` — knowledge state management (see [README](packages/knowledge/README.md)
 - `@social/server`    — networking wrapper around knowledge package
-- `@social/web`       — web interface [README](packages/web/README.md)
+- `@social/web`       — modern web interface
 
 ## Getting started
 
+The system uses the `WEB_PACKAGE` environment variable to determine which web package to build and serve. By default, it uses `web`.
+
 ### Static deployment
 
-Build the web interface and copy it to any SPA web service. Github pages can be configured to support SPA apps. See the web app [README](packages/web/README.md) for more details.
+Build the web interface and copy it to any SPA web service. Github pages can be configured to support SPA apps.
 
 ### Dynamic Deployment
 

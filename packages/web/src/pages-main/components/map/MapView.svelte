@@ -18,6 +18,7 @@
   }: MapViewProps = $props()
 
   let mapContainer = $state<HTMLDivElement | undefined>()
+  let mapParentContainer = $state<HTMLDivElement | undefined>()
   let map: mapboxgl.Map | null = null
   let mapReady = $state(false)
   let initError = $state<string | null>(null)
@@ -32,6 +33,35 @@
   let locatedChildren = $derived(children.filter(child => 
     child.location?.lat != null && child.location?.lon != null
   ))
+
+  // Calculate map height based on parent container
+  $effect(() => {
+    if (mapParentContainer) {
+      const updateHeight = () => {
+        const rect = mapParentContainer!.getBoundingClientRect()
+        const newHeight = Math.max(400, rect.height) // Minimum 400px
+        if (newHeight !== mapHeight) {
+          mapHeight = newHeight
+          
+          // Force map resize if it exists
+          if (map && mapReady) {
+            setTimeout(() => {
+              map?.resize()
+            }, 50)
+          }
+        }
+      }
+      
+      updateHeight()
+      
+      const resizeObserver = new ResizeObserver(updateHeight)
+      resizeObserver.observe(mapParentContainer)
+      
+      return () => {
+        resizeObserver.disconnect()
+      }
+    }
+  })
 
   // Initialize map when container is ready
   $effect(() => {
@@ -300,20 +330,34 @@
       }, 50)
     }
   }
+
+  // Export function to force height recalculation
+  export function recalculateHeight() {
+    if (mapParentContainer) {
+      const rect = mapParentContainer.getBoundingClientRect()
+      const newHeight = Math.max(400, rect.height)
+      updateHeight(newHeight)
+    }
+  }
 </script>
 
 <div 
-  bind:this={mapContainer}
-  class="w-full rounded-lg border border-white/20 overflow-hidden"
-  style="background: #0a0a0a; height: {mapHeight}px;"
+  bind:this={mapParentContainer}
+  class="w-full h-full min-h-[400px]"
 >
-  {#if initError}
-    <div class="flex items-center justify-center h-full">
-      <div class="text-xs text-red-400 text-center p-4">
-        Map initialization error: {initError}
+  <div 
+    bind:this={mapContainer}
+    class="w-full h-full rounded-lg border border-white/20 overflow-hidden"
+    style="background: #0a0a0a; height: {mapHeight}px;"
+  >
+    {#if initError}
+      <div class="flex items-center justify-center h-full">
+        <div class="text-xs text-red-400 text-center p-4">
+          Map initialization error: {initError}
+        </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 <style>

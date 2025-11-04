@@ -45,6 +45,10 @@
   style="height: {drawerMode === 'minimized' ? '40px' : drawerMode === 'places' ? '200px' : '350px'};"
 >
   <!-- Handle Bar -->
+  <!-- unused
+        unusedclass="absolute -top-3 w-6 h-6 bg-gray-600 border-2 border-white rounded-full hover:bg-gray-500 transition-colors shadow-lg"
+ 
+  -->
   <div class="relative h-1 flex items-center justify-center px-4">
     <button 
       onclick={handleBarClick}

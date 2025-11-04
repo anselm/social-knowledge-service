@@ -7,7 +7,7 @@
     totalGroups: 0,
     totalParties: 0,
     totalEntities: 0,
-    recentActivity: []
+    recentActivity: [] as any[]
   })
   let loading = $state(true)
   
@@ -24,9 +24,24 @@
     loading = true
     try {
       const authIdentifier = $authStore.address || $authStore.issuer || ''
-      analytics = await api.getUserAnalytics(authIdentifier)
+      const analyticsData = await api.getUserAnalytics(authIdentifier)
+      
+      // Get recent posts as recent activity
+      const recentPosts = await api.getUserPosts(authIdentifier, 5)
+      
+      analytics = {
+        ...analyticsData,
+        recentActivity: recentPosts || []
+      }
     } catch (error) {
       console.error('Failed to load analytics:', error)
+      analytics = {
+        totalPosts: 0,
+        totalGroups: 0,
+        totalParties: 0,
+        totalEntities: 0,
+        recentActivity: []
+      }
     } finally {
       loading = false
     }

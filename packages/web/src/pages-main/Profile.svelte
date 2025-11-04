@@ -10,10 +10,16 @@
   
   import { getMagic } from '@/lib/magic'
 
-  // Redirect to login if not authenticated
+  // Redirect to home if not authenticated, but only once and not during navigation
+  let hasCheckedAuth = $state(false)
+  
   $effect(() => {
-    if (!authStore.isFullyAuthenticated($authStore)) {
+    if (!hasCheckedAuth && !authStore.isFullyAuthenticated($authStore)) {
+      console.log('Profile: User not authenticated, redirecting to home')
+      hasCheckedAuth = true
       navigateTo('/')
+    } else if (authStore.isFullyAuthenticated($authStore)) {
+      hasCheckedAuth = true
     }
   })
   

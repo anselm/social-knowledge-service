@@ -1,27 +1,22 @@
-# Social Appliance
+# Social Knowledge Service
 
-A social knowledge service.
-
-## Features
-
-- A multiplayer social web experience
-- Supports multiple users with SIWE (Sign in With Ethereum - ERC-4361) for authentication.
-- May also be used as a totally static portfolio website such as on github pages
+- A "knowledge service" that stores stereotypical social artifacts; posts, people, places, things
+- A web interface around this; useful as both a multiplayer experience or a portfolio site
+- SIWE (sign in with ethereum) for multiple users
+- Static deployment as a SPA app - can be deployed to github pages for example
 
 ## Code layout
 
 - `@social/orbital`   — pubsub event messaging backbone
-- `@social/knowledge` — knowledge state management (see [README](packages/knowledge/README.md)
-- `@social/server`    — networking wrapper around knowledge package
-- `@social/web`       — modern web interface
-
-## Getting started
-
-The system uses the `WEB_PACKAGE` environment variable to determine which web package to build and serve. By default, it uses `web`.
+- `@social/knowledge` — knowledge state management
+- `@social/server`    — networking wrapper around knowledge service
+- `@social/web`       — web interface
 
 ### Static deployment
 
-Build the web interface and copy it to any SPA web service. Github pages can be configured to support SPA apps.
+For static deployment (such as for a static portfolio site) the web interface can be built by itself.
+It maps the /public filesystem as a web interface using ".info" files to drive layout and content.
+Note that github pages can be configured to support SPA routing and this can be deployed there.
 
 ### Dynamic Deployment
 
@@ -40,7 +35,7 @@ brew services stop mongodb-community
 
 ### Environment Configuration
 
-Copy `.env.example` to `.env` - please refer to this document for the variables.
+Copy `.env.example` to `.env` - please refer to document for details.
 
 ### Running the Application
 
@@ -51,7 +46,7 @@ npm i
 npm run dev
 ```
 
-Or run as a docker image:
+Or run as docker image:
 
 ```bash
 docker compose up --build

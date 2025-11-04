@@ -183,6 +183,20 @@ function createAuthStore() {
       if (authData.type === 'magic' && authData.didToken) {
         const store = createAuthStore()
         return store.loginWithMagic(authData.didToken)
+      } else if (authData.type === 'siwe' && authData.address) {
+        // Handle SIWE authentication - set the auth state
+        update(state => {
+          const newState: AuthState = {
+            ...authData,
+            type: 'siwe'
+          }
+          console.log('Setting SIWE auth state:', newState)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newState))
+          }
+          return newState
+        })
+        return { success: true }
       } else {
         console.error('Legacy login called with unsupported auth type or missing data')
         return { success: false, error: 'Unsupported authentication method' }
@@ -216,8 +230,19 @@ function createAuthStore() {
     
     // Check if user is fully logged in (authenticated + has party)
     isFullyAuthenticated: (state: AuthState | null): boolean => {
-      const result = !!(state && state.partyId && state.user)
-      console.log('isFullyAuthenticated check:', { state, result })
+      if (!state || !state.partyId) {
+        const result = false
+        console.log('isFullyAuthenticated check:', { state, result, reason: 'missing state or partyId' })
+        return result
+      }
+      
+      // For SIWE, we just need address and partyId
+      // For Magic, we need issuer/email and partyId
+      const hasAuthData = (state.type === 'siwe' && state.address) || 
+                         (state.type === 'magic' && (state.issuer || state.email))
+      
+      const result = !!hasAuthData
+      console.log('isFullyAuthenticated check:', { state, result, hasAuthData, type: state.type })
       return result
     }
   }

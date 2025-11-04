@@ -293,9 +293,12 @@
         const verifyParty = await api.getEntityBySlug(slug)
         console.log('Party verified:', verifyParty)
         
+        // Extract the entity from the response
+        const partyEntity = verifyParty.data || verifyParty
+        
         // First set the auth data with party info
         await authStore.login(tempAuthData)
-        authStore.completeSignup(verifyParty.id, verifyParty.slug || slug)
+        authStore.completeSignup(partyEntity.id, partyEntity.meta?.slug || slug)
         
         console.log('LoginModal: Signup complete, navigating to profile')
         handleClose()
@@ -307,8 +310,9 @@
       } catch (verifyError) {
         console.error('Failed to verify party creation:', verifyError)
         // Still try to complete with the original party data
+        const partyEntity = party.data || party
         await authStore.login(tempAuthData)
-        authStore.completeSignup(party.id, party.slug || slug)
+        authStore.completeSignup(partyEntity.id, partyEntity.meta?.slug || slug)
         
         handleClose()
         setTimeout(() => {

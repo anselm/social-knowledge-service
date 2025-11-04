@@ -3,6 +3,9 @@
   import { authStore } from '@/stores/auth'
   import { api } from '@/services/api'
   import RouterLink from '../RouterLink.svelte'
+  import loggers from '@/services/logger'
+  
+  const log = loggers.profile
   
   let favorites = $state<Entity[]>([])
   let loading = $state(true)
@@ -20,9 +23,13 @@
     
     loading = true
     try {
-      favorites = await api.getUserFavorites($authStore.partyId)
+      // TODO: Implement favorites with new relationship system
+      // For now, return empty array since relationships API may not be fully implemented
+      favorites = []
+      log.info('Favorites feature temporarily disabled - needs relationship system implementation')
     } catch (error) {
       console.error('Failed to load favorites:', error)
+      favorites = []
     } finally {
       loading = false
     }

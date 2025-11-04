@@ -430,7 +430,7 @@ class UnifiedApiClient {
       // Special handling for root slug
       if (slug === '/') {
         const response = await this.request('/api/entities/slug')
-        log.debug('Got root entity:', response?.id)
+        log.debug('Got root entity:', response?.id || response?.data?.id)
         return response
       }
       
@@ -439,7 +439,7 @@ class UnifiedApiClient {
       const encodedSlug = segments.map(s => encodeURIComponent(s)).join('/')
       const fullPath = `/api/entities/slug/${encodedSlug}`
       const response = await this.request(fullPath)
-      log.debug(`Got entity by slug "${slug}":`, response?.id)
+      log.debug(`Got entity by slug "${slug}":`, response?.id || response?.data?.id)
       return response
     } catch (error: any) {
       log.error(`Failed to get entity by slug "${slug}":`, error)
@@ -514,7 +514,7 @@ class UnifiedApiClient {
   }
 
   async createEntity(data: any) {
-    log.info('Creating entity:', data.type || 'unknown type')
+    log.info('Creating entity:', data.kind || data.type || 'unknown type')
     return this.request('/api/entities', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -560,17 +560,105 @@ class UnifiedApiClient {
   // Legacy methods for backward compatibility
   async createPost(data: any) {
     log.info('Creating post:', data.title || 'untitled')
-    return this.createEntity({ ...data, type: 'post' })
+    
+    // Transform flat format to component-based format
+    const now = new Date().toISOString()
+    const entity = {
+      id: data.slug || data.id,
+      kind: 'post',
+      meta: {
+        slug: data.slug,
+        label: data.title || 'Untitled Post',
+        content: data.content || data.description || '',
+        created: now,
+        updated: now,
+        creatorAddress: data.auth || data.address || data.creatorAddress
+      },
+      stats: {
+        observers: 0,
+        children: 0
+      }
+    }
+    
+    const response = await this.createEntity(entity)
+    
+    // Extract the entity from the server response: {success: true, data: Entity}
+    if (response && typeof response === 'object' && 'data' in response) {
+      return response.data
+    } else if (response && typeof response === 'object' && 'id' in response) {
+      return response
+    } else {
+      return response
+    }
   }
 
   async createGroup(data: any) {
     log.info('Creating group:', data.title || data.slug || 'untitled')
-    return this.createEntity({ ...data, type: 'group' })
+    
+    // Transform flat format to component-based format
+    const now = new Date().toISOString()
+    const entity = {
+      id: data.slug || data.id,
+      kind: 'group',
+      meta: {
+        slug: data.slug,
+        label: data.title || data.slug?.replace(/^\//, '').replace(/\//g, ' ') || 'Untitled Group',
+        content: data.content || data.description || '',
+        view: data.view || 'list',
+        created: now,
+        updated: now,
+        creatorAddress: data.auth || data.address || data.creatorAddress
+      },
+      stats: {
+        observers: data.observers || 0,
+        children: data.children || 0
+      }
+    }
+    
+    const response = await this.createEntity(entity)
+    
+    // Extract the entity from the server response: {success: true, data: Entity}
+    if (response && typeof response === 'object' && 'data' in response) {
+      return response.data
+    } else if (response && typeof response === 'object' && 'id' in response) {
+      return response
+    } else {
+      return response
+    }
   }
 
   async createUser(data: any) {
     log.info('Creating user:', data.slug || 'unnamed')
-    return this.createEntity({ ...data, type: 'party' })
+    
+    // Transform flat format to component-based format
+    const now = new Date().toISOString()
+    const entity = {
+      id: data.slug,
+      kind: 'party',
+      meta: {
+        slug: data.slug,
+        label: data.title || data.slug?.replace(/^\//, '').replace(/\//g, ' ') || 'Unnamed Party',
+        content: `Party profile for ${data.title || data.slug?.replace(/^\//, '') || 'user'}`,
+        created: now,
+        updated: now,
+        creatorAddress: data.auth || data.address || data.sponsorId
+      },
+      stats: {
+        observers: 0,
+        children: 0
+      }
+    }
+    
+    const response = await this.createEntity(entity)
+    
+    // Extract the entity from the server response: {success: true, data: Entity}
+    if (response && typeof response === 'object' && 'data' in response) {
+      return response.data
+    } else if (response && typeof response === 'object' && 'id' in response) {
+      return response
+    } else {
+      return response
+    }
   }
 
   // ===== RELATIONSHIP OPERATIONS =====

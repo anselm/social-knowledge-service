@@ -3,19 +3,42 @@ import { apiConfig } from '../stores/appConfig'
 import { getJSON, postJSON } from '../lib/auth'
 import loggers from './logger'
 import { loadInfoFile } from './dataLoader'
-import type { Entity } from '../types'
-
-export interface Relationship {
-  id: string
-  fromId: string
-  toId: string
-  type: string
-  metadata?: any
-  createdAt: string
-  updatedAt: string
-}
+import type { Entity, Relationship } from '../types'
 
 const log = loggers.apiClient
+
+// Helper functions to extract properties from component structure
+function getSlug(entity: Entity): string | undefined {
+  return entity.meta?.slug
+}
+
+function getLabel(entity: Entity): string | undefined {
+  return entity.meta?.label
+}
+
+function getContent(entity: Entity): string | undefined {
+  return entity.meta?.content
+}
+
+function getDepiction(entity: Entity): string | undefined {
+  return entity.meta?.depiction
+}
+
+function getView(entity: Entity): string | undefined {
+  return entity.meta?.view
+}
+
+function getCreated(entity: Entity): string | undefined {
+  return entity.meta?.created
+}
+
+function getUpdated(entity: Entity): string | undefined {
+  return entity.meta?.updated
+}
+
+function getLocation(entity: Entity): { lat?: number, lon?: number, rad?: number } | undefined {
+  return entity.location
+}
 
 // Simple in-memory cache
 interface CachedEntity extends Entity {
@@ -29,8 +52,9 @@ class SimpleCache {
   set(entity: Entity) {
     const cached: CachedEntity = { ...entity, _cachedAt: Date.now() }
     this.entityCache.set(entity.id, cached)
-    if (entity.slug) {
-      this.slugCache.set(entity.slug, cached)
+    const slug = getSlug(entity)
+    if (slug) {
+      this.slugCache.set(slug, cached)
     }
   }
   
@@ -431,9 +455,62 @@ class UnifiedApiClient {
         params.append(key, value)
       }
     })
-    const result = await this.request(`/api/entities?${params}`)
-    log.debug(`Query returned ${Array.isArray(result) ? result.length : 0} entities`)
-    return result
+    const response = await this.request(`/api/entities?${params}`)
+    
+    // Handle the response format from the server: {success: true, data: Array, count: number}
+    if (response && typeof response === 'object' && 'data' in response) {
+      const entities = response.data
+      log.debug(`Query returned ${Array.isArray(entities) ? entities.length : 0} entities`)
+      return entities
+    } else if (Array.isArray(response)) {
+      log.debug(`Query returned ${response.length} entities`)
+      return response
+    } else {
+      log.debug('Query returned no entities')
+      return []
+    }
+  }
+
+  async queryChildren(parentId: string): Promise<Entity[]> {
+    log.debug('Querying children for parent:', parentId)
+    
+    // Get relationships where this entity is the OBJECT and predicate is "childOf"
+    // This finds all entities that have "childOf" relationship TO this parent
+    const response = await this.queryEntities({
+      kind: 'edge',
+      'relation.object': parentId,
+      'relation.predicate': 'childOf'
+    })
+    
+    // Handle the response format from the server: {success: true, data: Array, count: number}
+    let relationships: Relationship[]
+    if (response && typeof response === 'object' && 'data' in response) {
+      relationships = response.data as Relationship[]
+    } else if (Array.isArray(response)) {
+      relationships = response as Relationship[]
+    } else {
+      relationships = []
+    }
+    
+    if (!relationships || relationships.length === 0) {
+      log.debug('No relationships found for parent:', parentId)
+      return []
+    }
+    
+    // Extract child IDs from the relationships (children are the SUBJECTS in "childOf" relationships)
+    const childIds = relationships.map(r => r.relation.subject)
+    
+    // Query for the actual child entities
+    const children = []
+    for (const childId of childIds) {
+      const child = await this.getEntityById(childId)
+      if (child) {
+        children.push(child)
+      }
+    }
+    
+    log.debug(`Found ${children.length} children for parent ${parentId}`)
+    return children
   }
 
   async createEntity(data: any) {
@@ -442,6 +519,27 @@ class UnifiedApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     })
+  }
+
+  async getEntityById(id: string): Promise<Entity | null> {
+    try {
+      log.debug(`Getting entity by ID: ${id}`)
+      // URL encode the ID to handle special characters like /
+      const encodedId = encodeURIComponent(id)
+      const response = await this.request(`/api/entities/${encodedId}`)
+      
+      // Handle the response format from the server: {success: true, data: Entity}
+      if (response && typeof response === 'object' && 'data' in response) {
+        return response.data || null
+      } else if (response && typeof response === 'object' && 'id' in response) {
+        return response
+      } else {
+        return null
+      }
+    } catch (error: any) {
+      log.error(`Failed to get entity by ID "${id}":`, error)
+      return null
+    }
   }
 
   async updateEntity(id: string, data: any) {
@@ -569,9 +667,9 @@ class UnifiedApiClient {
       let lastActivity: string | undefined
       if (allEntities.length > 0) {
         const timestamps = allEntities
-          .map(e => e.updatedAt || e.createdAt)
+          .map(e => getUpdated(e) || getCreated(e))
           .filter(Boolean)
-          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+          .sort((a, b) => new Date(b!).getTime() - new Date(a!).getTime())
         
         if (timestamps.length > 0) {
           lastActivity = timestamps[0]
@@ -685,7 +783,7 @@ class UnifiedApiClient {
       }
       
       // Fetch all the favorited entities
-      const entityIds = relationships.map((r: Relationship) => r.toId)
+      const entityIds = relationships.map((r: Relationship) => r.relation.object)
       const entities: Entity[] = []
       
       for (const entityId of entityIds) {

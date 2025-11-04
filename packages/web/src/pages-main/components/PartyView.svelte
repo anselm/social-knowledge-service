@@ -15,22 +15,10 @@
   })
   
   async function loadRecentPosts() {
-    // Use new schema - auth is in party.auth
-    const authAddress = entity.party?.auth
-    if (!authAddress) {
-      loading = false
-      return
-    }
-    
-    loading = true
-    try {
-      const posts = await api.getUserPosts(authAddress, 5)
-      recentPosts = posts
-    } catch (error) {
-      console.error('Failed to load recent posts:', error)
-    } finally {
-      loading = false
-    }
+    // In the new schema, we'll need to use the entity ID or another method
+    // For now, let's skip loading posts as auth is no longer stored
+    loading = false
+    // TODO: Implement post loading using new relationship-based system
   }
 </script>
 
@@ -76,25 +64,25 @@
       <div class="space-y-4">
         {#each recentPosts as post}
           <RouterLink 
-            to={post.slug || `/${post.id}`} 
+            to={post.meta?.slug || `/${post.id}`} 
             className="block border border-white/10 p-4 hover:border-white/30 transition-colors"
           >
             {#snippet children()}
               <div class="flex gap-4">
-                {#if post.depiction}
+                {#if post.meta?.depiction}
                   <img 
-                    src={post.depiction} 
-                    alt={post.title || 'Post'} 
+                    src={post.meta.depiction} 
+                    alt={post.meta?.label || 'Post'} 
                     class="w-20 h-20 object-cover flex-shrink-0"
                   />
                 {/if}
                 <div class="flex-1 min-w-0">
-                  <h3 class="text-sm font-medium mb-1">{post.title || 'Untitled'}</h3>
-                  {#if post.content}
-                    <p class="text-xs text-white/60 line-clamp-2">{post.content}</p>
+                  <h3 class="text-sm font-medium mb-1">{post.meta?.label || 'Untitled'}</h3>
+                  {#if post.meta?.content}
+                    <p class="text-xs text-white/60 line-clamp-2">{post.meta.content}</p>
                   {/if}
                   <div class="text-xs text-white/40 mt-2">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                    {post.meta?.created ? new Date(post.meta.created).toLocaleDateString() : 'Unknown date'}
                   </div>
                 </div>
               </div>

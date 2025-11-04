@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 3000, // Increased from 1000 to accommodate Mapbox GL and other large dependencies
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: isDev, // Enable source maps in development

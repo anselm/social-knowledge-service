@@ -21,13 +21,13 @@
   let checkingFavorite = $state(false)
   let togglingFavorite = $state(false)
   
-  // Get stats from entity metadata or use defaults
+  // Get stats from entity components or use defaults
   let stats = $derived({
-    memberCount: entity.metadata?.memberCount ?? 0,
-    recentPosts: entity.metadata?.recentPosts ?? 0,
-    isPublic: entity.metadata?.isPublic ?? true,
-    createdAt: entity.createdAt,
-    createdBy: entity.auth ? `${entity.auth.substring(0, 6)}...${entity.auth.substring(entity.auth.length - 4)}` : null
+    memberCount: entity.stats?.observers ?? 0,
+    recentPosts: entity.stats?.children ?? 0,
+    isPublic: true, // Default to public for now
+    createdAt: entity.meta?.created,
+    createdBy: null // No longer tracked in new schema
   })
   
   // Check if entity is favorited when component mounts or auth changes
@@ -78,18 +78,18 @@
 </script>
 
 <div>
-  {#if showDepiction && entity.depiction}
+  {#if showDepiction && entity.meta?.depiction}
     <div class="mb-2 -mx-4 md:mx-0">
       <img 
-        src={entity.depiction} 
-        alt={entity.title || 'Banner'} 
+        src={entity.meta.depiction} 
+        alt={entity.meta?.label || 'Banner'} 
         class="w-full h-32 md:h-40 object-cover rounded-none md:rounded"
       />
     </div>
   {/if}
   
   <div class="flex items-start justify-between gap-4">
-    <h1 class="text-lg mb-2 flex-1">{entity.title || entity.slug || 'Untitled'}</h1>
+    <h1 class="text-lg mb-2 flex-1">{entity.meta?.label || entity.meta?.slug || 'Untitled'}</h1>
     
     {#if $authStore && $authStore.partyId}
       <button
@@ -156,9 +156,9 @@
     </div>
   {/if}
   
-  {#if showContent && entity.content}
+  {#if showContent && entity.meta?.content}
     <div class="text-sm text-black/60 dark:text-white/60 prose-content">
-      {@html renderMarkdown(entity.content)}
+      {@html renderMarkdown(entity.meta.content)}
     </div>
   {/if}
 </div>

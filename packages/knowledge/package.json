@@ -20,8 +20,12 @@
     "test:graphql": "node test/graphql-tests.js",
     "test:relationships": "node test/relationship-test.js",
     "seed:load": "tsx scripts/seed-loader.ts",
+    "seed:all": "tsx scripts/seed-loader.ts",
+    "seed:root": "node scripts/create-root.js",
     "seed:berkeley": "tsx scripts/seed-loader.ts berkeley",
+    "seed:location": "tsx scripts/seed-loader.ts",
     "seed:force": "tsx scripts/seed-loader.ts --force",
+    "seed:stats": "tsx scripts/seed-loader.ts --stats",
     "seed:convert": "tsx scripts/convert-schema.js",
     "db:flush": "tsx scripts/flush-db.ts"
   },

@@ -17,7 +17,7 @@
   let entity = $state<Entity | null>(null)
   let loading = $state(true)
   let error = $state<string | null>(null)
-  let entityType = 'unknown'
+  let entityType = $state('unknown')
 
   console.log('EntityView: Component script executing with path:', path)
 
@@ -49,31 +49,9 @@
       
       console.log('EntityView: Loaded entity:', entity)
       
-      // Determine entity type from kind field (preferred) or fallback to properties
-      if (entity.kind) {
-        entityType = entity.kind
-        console.log('EntityView: Using entity.kind for type:', entityType)
-      } else if (entity.party) {
-        entityType = 'party'
-        console.log('EntityView: Fallback to property-based detection: party')
-      } else if (entity.group) {
-        entityType = 'group'
-        console.log('EntityView: Fallback to property-based detection: group')
-      } else if (entity.post) {
-        entityType = 'post'
-        console.log('EntityView: Fallback to property-based detection: post')
-      } else if (entity.place) {
-        entityType = 'place'
-        console.log('EntityView: Fallback to property-based detection: place')
-      } else if (entity.thing) {
-        entityType = 'thing'
-        console.log('EntityView: Fallback to property-based detection: thing')
-      } else {
-        entityType = 'thing' // Default fallback
-        console.log('EntityView: No type detected, defaulting to thing')
-      }
-      
-      console.log('EntityView: Final entity type:', entityType)
+      // Use kind field for type determination
+      entityType = entity.kind || 'unknown'
+      console.log('EntityView: Entity type:', entityType)
       console.log('EntityView: Entity meta.view:', entity.meta?.view)
       
     } catch (err: any) {
@@ -119,25 +97,25 @@
       </RouterLink>
     </div>
   {:else}
-    {#if entity.post}
+    {#if entityType === 'post'}
       <PostView {entity} />
-    {:else if entity.party}
+    {:else if entityType === 'party'}
       <PartyView {entity} />
-    {:else if entity.group}
+    {:else if entityType === 'group'}
       {#if entity.meta?.view === 'map'}
         <GroupViewMap {entity} />
       {:else}
         <GroupViewGeneral {entity} />
       {/if}
-    {:else if entity.place}
+    {:else if entityType === 'place'}
       <!-- TODO: Create PlaceView component -->
       <div class="text-sm text-blue-400">Place view not yet implemented</div>
-    {:else if entity.thing}
+    {:else if entityType === 'thing'}
       <!-- TODO: Create ThingView component -->
       <div class="text-sm text-blue-400">Thing view not yet implemented</div>
     {:else}
       <div class="space-y-4">
-        <div class="text-xs text-red-400">Unknown entity type</div>
+        <div class="text-xs text-red-400">Unknown entity type: {entityType}</div>
         <div class="text-xs text-white/60 bg-white/5 p-2 rounded">
           <div>Entity structure:</div>
           <pre class="text-xs mt-1">{JSON.stringify(entity, null, 2)}</pre>

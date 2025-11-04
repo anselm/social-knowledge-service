@@ -1,27 +1,55 @@
 
 export interface Entity {
   id: string
-  slug?: string
-  type: string
-  auth?: string
-  permissions?: string[]
-  address?: string
-  contract?: string | null
-  sponsorId?: string
-  parentId?: string
-  title?: string
-  content?: string
-  depiction?: string
-  tags?: string[]
-  view?: string
-  latitude?: number | null
-  longitude?: number | null
-  radius?: number | null
-  begins?: string | null
-  ends?: string | null
-  createdAt: string
-  updatedAt: string
-  metadata?: any
+  kind: string
+  
+  // Component structures (new schema)
+  meta?: {
+    slug?: string
+    label?: string
+    content?: string
+    depiction?: string
+    tags?: string[]
+    view?: string
+    permissions?: string[]
+    created?: string
+    updated?: string
+    props?: Record<string, any>
+  }
+  
+  location?: {
+    lat?: number
+    lon?: number
+    rad?: number
+    point?: {
+      type: "Point"
+      coordinates: [number, number]
+    }
+  }
+  
+  time?: {
+    begins?: string
+    ends?: string
+  }
+  
+  stats?: {
+    observers?: number
+    children?: number
+  }
+}
+
+export interface Relationship {
+  id: string
+  kind: 'edge'
+  relation: {
+    subject: string
+    predicate: string
+    object: string
+  }
+  meta?: {
+    created?: string
+    updated?: string
+  }
 }
 
 export interface Stats {
@@ -29,7 +57,7 @@ export interface Stats {
   byType: Record<string, number>
 }
 
-export interface EntityWithChildren extends Entity {
+export interface EntityWithChildren extends Omit<Entity, 'children'> {
   children?: EntityWithChildren[]
   expanded?: boolean
 }

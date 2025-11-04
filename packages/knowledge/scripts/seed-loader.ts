@@ -186,6 +186,10 @@ class SeedLoader {
    * Load seed data from a specific location
    */
   async loadLocation(locationName: string): Promise<void> {
+    // Always load root first when loading a specific location
+    console.log('🏠 Ensuring root entity is loaded first...');
+    await this.loadRootSeedFiles();
+    
     const seedDir = path.join(__dirname, '../seed-data', locationName);
     const infoFile = path.join(seedDir, 'info.js');
 
@@ -309,10 +313,10 @@ class SeedLoader {
 /**
  * Parse command line arguments
  */
-function parseArgs(): { options: SeedOptions & { statsOnly?: boolean }; location?: string } {
+function parseArgs(): { options: SeedOptions & { statsOnly?: boolean }; locations: string[] } {
   const args = process.argv.slice(2);
   const options: SeedOptions & { statsOnly?: boolean } = {};
-  let location: string | undefined;
+  const locations: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -328,34 +332,44 @@ function parseArgs(): { options: SeedOptions & { statsOnly?: boolean }; location
 Seed Data Loader
 
 Usage:
-  npm run seed:load                    # Load all seed data
-  npm run seed:load berkeley           # Load specific location
-  npm run seed:load berkeley --force   # Force reload even if exists
-  npm run seed:load --stats            # Show database statistics only
+  npm run seed:load                         # Load all seed data (root + all locations)
+  npm run seed:load berkeley                # Load root + berkeley
+  npm run seed:load berkeley portland       # Load root + multiple locations
+  npm run seed:load berkeley --force        # Force reload even if exists
+  npm run seed:stats                        # Show database statistics only
 
 Options:
   --force, -f    Force reload entities even if they exist
   --verbose, -v  Show detailed logging
   --stats, -s    Show database statistics only (no loading)
   --help, -h     Show this help message
+
+Examples:
+  npm run seed:all                         # Load everything
+  npm run seed:root                        # Load only root entity from seed data
+  npm run seed:berkeley                    # Load root + berkeley
+  npm run seed:location berkeley portland  # Load root + multiple locations
 `);
       process.exit(0);
-    } else if (!location) {
-      location = arg;
+    } else {
+      locations.push(arg);
     }
   }
 
-  return { options, location };
+  return { options, locations };
 }
 
 /**
  * Main function
  */
 async function main() {
-  const { options, location } = parseArgs();
+  const { options, locations } = parseArgs();
   
   console.log('🌱 Social Knowledge Seed Loader');
   console.log(`⚙️  Options: ${JSON.stringify(options)}`);
+  if (locations.length > 0) {
+    console.log(`📍 Locations: ${locations.join(', ')}`);
+  }
   
   const loader = new SeedLoader(options);
   
@@ -364,10 +378,14 @@ async function main() {
     
     if (options.statsOnly) {
       await loader.showStats();
-    } else if (location) {
-      await loader.loadLocation(location);
+    } else if (locations.length > 0) {
+      // Load specific locations (root will be loaded automatically)
+      for (const location of locations) {
+        await loader.loadLocation(location);
+      }
       await loader.showStats();
     } else {
+      // Load all seed data
       await loader.loadAll();
       await loader.showStats();
     }

@@ -2,7 +2,6 @@ import './app.css'
 import { mount } from 'svelte'
 import App from './App.svelte'
 import { api } from './services/api'
-import { bootstrapAdmin } from './services/adminBootstrap'
 import loggers from './services/logger'
 import { themeStore } from './stores/theme'
 
@@ -17,9 +16,6 @@ async function initApp() {
   try {
     await (api as any).init()
     log.info('API client initialized successfully')
-    
-    // Bootstrap admin user for testing authentication flow
-    await bootstrapAdmin()
     
     const target = document.getElementById('app')
     if (!target) {

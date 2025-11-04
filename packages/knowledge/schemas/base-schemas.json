@@ -145,6 +145,47 @@
 }
 
 {
+	"$id": "ka://schemas/core/post/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "post",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "ENTITY: a social media post, may have time and a location",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"kind": { "const": "post", "description": "social media post - text only" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
+	}
+}
+
+{
+	"$id": "ka://schemas/core/event/1.0.0",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"name": "event",
+	"namespace": "core",
+	"version": "1.0.0",
+	"description": "ENTITY: an event such as a wedding or a future schedulable",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [ "id", "meta"],
+	"properties": {
+		"id": { "type": "string" },
+		"kind": { "const": "event", "description": "An event such as a wedding" },
+		"meta": { "$ref": "ka://schemas/core/meta/1.0.0" },
+		"time": { "$ref": "ka://schemas/core/time/1.0.0" },
+		"address": { "$ref": "ka://schemas/core/address/1.0.0" },
+		"location": { "$ref": "ka://schemas/core/location/1.0.0" },
+		"stats": { "$ref": "ka://schemas/core/stats/1.0.0" }
+	}
+}
+
+{
 	"$id": "ka://schemas/core/thing/1.0.0",
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"name": "thing",

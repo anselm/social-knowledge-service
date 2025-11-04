@@ -1,6 +1,6 @@
-export default {
+export const root = {
   id: '/',
-  kind:'group',
+  kind: 'group',
   meta: {
     slug: '/',
     label: 'Home',
@@ -9,9 +9,13 @@ export default {
     created: '2024-01-20T08:00:00.000Z',
     updated: '2024-01-20T08:00:00.000Z',
     depiction: "https://www.doc.govt.nz/thumbs/hero/globalassets/images/places/fiordland/kepler-track/kepler-1920.jpg",
+    props: {
+      memberCount: 100,
+      recentPosts: 10
+    }
   },
   stats: {
-    memberCount: 100,
-    recentPosts: 10
+    observers: 100,
+    children: 10
   }
 };

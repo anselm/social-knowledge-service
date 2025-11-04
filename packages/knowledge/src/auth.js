@@ -27,8 +27,17 @@ export function makeNonce() {
  */
 export async function verifySiwe({ message, signature, expectedNonce }) {
   try {
+    // Parse the address from the message (second line typically)
+    const lines = message.split("\n");
+    const addressLine = lines[1]; // Should be the Ethereum address
+    const expectedAddress = addressLine?.trim();
+    
+    if (!expectedAddress || !expectedAddress.startsWith('0x')) {
+      throw new Error('Invalid SIWE message format: could not parse address');
+    }
+
     // Parse the nonce from the message
-    const nonceLine = message.split("\n").find((l) => l.startsWith("Nonce: "));
+    const nonceLine = lines.find((l) => l.startsWith("Nonce: "));
     const nonce = nonceLine?.split("Nonce: ")[1]?.trim();
 
     // Verify nonce matches expected
@@ -42,6 +51,11 @@ export async function verifySiwe({ message, signature, expectedNonce }) {
       hash: messageHash,
       signature: signature,
     });
+
+    // Verify the recovered address matches the claimed address in the message
+    if (recoveredAddress.toLowerCase() !== expectedAddress.toLowerCase()) {
+      throw new Error(`address mismatch: message claims ${expectedAddress}, but signature resolves to ${recoveredAddress}`);
+    }
 
     Logger.info(`SIWE verification successful for address: ${recoveredAddress}`);
     return recoveredAddress;

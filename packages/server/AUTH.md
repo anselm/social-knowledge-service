@@ -37,11 +37,6 @@ All entities created through authenticated requests are automatically bound to t
   "meta": {
     "label": "My Entity",
     "creatorAddress": "0x1234567890123456789012345678901234567890"
-  },
-  "thing": {
-    "category": "document",
-    "label": "My Document"
-  }
 }
 ```
 
@@ -201,10 +196,6 @@ Content-Type: application/json
   "id": "my-new-entity",
   "meta": {
     "label": "My New Entity"
-  },
-  "thing": {
-    "category": "document",
-    "label": "New Document"
   }
 }
 ```

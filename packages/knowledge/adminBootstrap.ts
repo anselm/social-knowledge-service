@@ -11,8 +11,8 @@
 
 import { privateKeyToAccount } from 'viem/accounts'
 import { uuidv7 } from 'uuidv7'
-import { postJSON } from '../lib/auth'
-import loggers from './logger'
+import { postJSON } from '../web/src/lib/auth'
+import loggers from '../web/src/services/logger'
 
 const log = loggers.app // Use app logger since admin logger doesn't exist
 

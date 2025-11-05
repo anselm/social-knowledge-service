@@ -14,31 +14,19 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Social Appliance - Google Cloud Run Deployment${NC}"
 echo "=============================================="
 
-# Navigate to project root (monorepo root where .env is located)
+# Navigate to project root
 SCRIPT_DIR="$(dirname "$0")"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
-echo -e "${GREEN}Working from project root: $PROJECT_ROOT${NC}"
 
 # Load environment variables from .env file in project root
 if [ -f .env ]; then
     echo -e "${GREEN}Loading environment variables from .env file...${NC}"
-    # Simple and reliable approach: source the .env file directly
-    # This handles quotes and special characters better than grep/sed approach
+    # Simple source method - more reliable than complex grep/sed
     set -a
     source .env
     set +a
     echo -e "${GREEN}Environment variables loaded successfully${NC}"
-    # Debug: Show key variables that were loaded
-    echo -e "${GREEN}Key variables loaded:${NC}"
-    echo -e "  GCLOUD_PROJECT_ID: ${GCLOUD_PROJECT_ID:-<not set>}"
-    echo -e "  GCLOUD_REGION: ${GCLOUD_REGION:-<not set>}"
-    echo -e "  GCLOUD_SERVICE_NAME: ${GCLOUD_SERVICE_NAME:-<not set>}"
-    if [ -n "$MONGODB_URI" ]; then
-        echo -e "  MONGODB_URI: ${MONGODB_URI:0:50}... (loaded successfully)"
-    else
-        echo -e "  MONGODB_URI: <not set>"
-    fi
 else
     echo -e "${YELLOW}Warning: .env file not found in project root${NC}"
     echo "Checking for environment variables..."
@@ -104,18 +92,12 @@ gcloud artifacts repositories create ${IMAGE_NAME} \
 
 # Build Docker image
 echo -e "${GREEN}Step 4: Building Docker image...${NC}"
-GCR_IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${IMAGE_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+# Use timestamp to force a unique image each time
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+GCR_IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${IMAGE_NAME}/${IMAGE_NAME}:${TIMESTAMP}"
 echo -e "${YELLOW}Building image: ${GCR_IMAGE}${NC}"
-echo -e "${YELLOW}Using Dockerfile at: ./Dockerfile${NC}"
-
-# Verify Dockerfile exists
-if [ ! -f Dockerfile ]; then
-    echo -e "${RED}Error: Dockerfile not found in project root${NC}"
-    echo "Make sure you're running this script from the monorepo root directory"
-    exit 1
-fi
-
-docker build -f Dockerfile -t ${GCR_IMAGE} .
+echo -e "${YELLOW}Using Dockerfile at: ./docker/Dockerfile${NC}"
+docker build -f docker/Dockerfile -t ${GCR_IMAGE} .
 
 # Push to Google Container Registry
 echo -e "${GREEN}Step 5: Pushing image to Artifact Registry...${NC}"
@@ -135,7 +117,11 @@ gcloud run deploy ${SERVICE_NAME} \
     --min-instances=0 \
     --max-instances=10 \
     --timeout=300 \
-    --set-env-vars="NODE_ENV=development,LOG_LEVEL=${LOG_LEVEL:-info},MONGODB_URI=${MONGODB_URI},MONGODB_NAME=${MONGODB_NAME:-social-appliance},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-}"
+    --set-env-vars="NODE_ENV=production" \
+    --set-env-vars="LOG_LEVEL=${LOG_LEVEL:-info}" \
+    --set-env-vars="MONGODB_URI=${MONGODB_URI}" \
+    --set-env-vars="MONGODB_NAME=${MONGODB_NAME:-social-appliance}" \
+    --set-env-vars="MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-}" \
 
 # Get service URL
 echo -e "${GREEN}Step 7: Getting service URL...${NC}"

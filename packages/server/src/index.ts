@@ -1,18 +1,19 @@
-// Load environment variables from .env file in monorepo root
+// Load environment variables from .env file in monorepo root (development only)
+// In production (Cloud Run), environment variables are set directly
+// In Docker containers, we may need to load from .env file
 // Current path: packages/server/src/index.ts (or when compiled: packages/server/dist/index.js)
 // Target path: .env (at monorepo root)
 // Need to go up: ../../../.env (from dist) or ../../.env (from src)
-// @todo concerned about this explicit path
-import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-// Use different paths for compiled vs source
-const envPath = __filename.includes('/dist/') 
-  ? path.resolve(__dirname, '../../../.env')  // compiled: dist/index.js
-  : path.resolve(__dirname, '../../.env')     // source: src/index.ts
-dotenv.config({ path: envPath })
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+import { loadEnv } from './loadenv.js';
+
+// Define __dirname for ES modules compatibility
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Load environment variables aggressively from multiple locations
+loadEnv();
 
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
@@ -39,8 +40,50 @@ export async function createServer() {
     allowedHeaders: ["Content-Type", "Authorization"]
   });
 
-  // Initialize Knowledge before registering routes
-  await Knowledge._initialize();
+  // Initialize Knowledge asynchronously - don't block server startup
+  // This allows the server to start listening on PORT even if MongoDB is down
+  let knowledgeReady = false;
+  const initializeKnowledge = async () => {
+    try {
+      Logger.info("🔄 Initializing Knowledge layer...");
+      await Knowledge._initialize();
+      knowledgeReady = true;
+      Logger.info("✅ Knowledge layer ready");
+    } catch (error) {
+      Logger.error("❌ Knowledge initialization failed:", error);
+      // Don't exit - let the server run without Knowledge for health checks
+    }
+  };
+  
+  // Start Knowledge initialization but don't await it
+  initializeKnowledge();
+  
+    // Add health check endpoint that works even if Knowledge isn't ready
+    fastify.get('/health', async (request, reply) => {
+        return {
+            status: 'ok',
+            knowledge: knowledgeReady ? 'ready' : 'initializing',
+            timestamp: new Date().toISOString()
+        };
+    });
+
+    // Middleware to check if Knowledge is ready for API routes
+    fastify.addHook('preHandler', async (request, reply) => {
+        // Skip Knowledge check for health endpoint and static files
+        if (request.url === '/health' || request.url.startsWith('/assets/') || request.url === '/') {
+            return;
+        }
+    
+    // For API routes, check if Knowledge is ready
+    if (request.url.startsWith('/api/') && !knowledgeReady) {
+      reply.code(503).send({
+        error: 'Service Unavailable',
+        message: 'Knowledge layer is still initializing. Please try again in a moment.',
+        knowledgeReady: false
+      });
+      return;
+    }
+  });
 
   // Register GraphQL endpoint
   await fastify.register(registerGraphQL);
@@ -114,6 +157,11 @@ export async function startServer() {
     return server;
   } catch (err) {
     Logger.error("Error starting server:", err);
+    console.error("Full error details:", err);
+    if (err instanceof Error) {
+      console.error("Error message:", err.message);
+      console.error("Error stack:", err.stack);
+    }
     process.exit(1);
   }
 }

@@ -4,9 +4,6 @@ import { Logger } from "./logger.js";
 
 export function registerRoutes(app: FastifyInstance) {
 
-  // Health check endpoint for docker
-  app.get("/healthz", async () => ({ ok: true }));
-
   // GET /api/health - Health check endpoint for web client
   app.get("/api/health", async (request, reply) => {
     try {

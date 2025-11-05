@@ -1,0 +1,53 @@
+{
+	# Global options
+	email admin@example.com
+	# Uncomment for staging/testing Let's Encrypt
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Replace with your actual domain
+# For Google Cloud, you'll get an external IP that you can point a domain to
+# Or use the format: <external-ip>.nip.io for testing
+{$DOMAIN:localhost} {
+	encode gzip zstd
+
+	# Health check endpoint
+	handle_path /api/health {
+		reverse_proxy app:8080
+	}
+
+	# API routes
+	handle_path /api/* {
+		reverse_proxy app:8080
+	}
+
+	# Static assets
+	@static {
+		path /assets/* /favicon.ico /robots.txt /manifest.json /pwa-* /*.png /*.svg /*.ico
+	}
+	handle @static {
+		reverse_proxy app:8080
+	}
+
+	# All other routes (SPA)
+	handle {
+		reverse_proxy app:8080
+	}
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+		-Server
+	}
+
+	# Logging
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+}

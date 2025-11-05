@@ -1,11 +1,7 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { readFileSync } from 'fs'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
 import { Logger } from './logger.js'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import { schemas } from './schemas.js'
 
 /// JSON Schema validation manager using AJV
 class SchemaManager {
@@ -24,19 +20,13 @@ class SchemaManager {
     this.initialized = false
   }
 
-  /// Initialize and load all schemas from the schemas directory
+  /// Initialize and load all schemas from the direct import
   /// @returns Promise<void>
   async initialize() {
     if (this.initialized) return
     
     try {
-      // Load the base schemas file
-      const schemasPath = resolve(__dirname, '../schemas/base-schemas.json')
-      const schemasContent = readFileSync(schemasPath, 'utf8')
-      
-      // Parse the JSON file which contains multiple schema objects
-      const schemas = this.parseMultipleSchemas(schemasContent)
-      
+      // Use directly imported schemas instead of file system access
       // Register each schema with AJV
       for (const schema of schemas) {
         this.addSchema(schema)

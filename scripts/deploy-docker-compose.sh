@@ -31,8 +31,7 @@ fi
 # Navigate to docker directory
 SCRIPT_DIR="$(dirname "$0")"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DOCKER_DIR="$PROJECT_ROOT"
-
+DOCKER_DIR="$PROJECT_ROOT/docker"
 cd "$DOCKER_DIR"
 
 # Check if .env file exists in docker directory

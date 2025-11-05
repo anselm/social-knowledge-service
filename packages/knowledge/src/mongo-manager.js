@@ -1,11 +1,7 @@
-import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { loadEnv } from './loadenv.js'
 
-// Load environment variables from .env file in monorepo root
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+// Load environment variables aggressively from multiple locations
+loadEnv()
 
 import { uuidv7 } from 'uuidv7'
 import { Logger } from './logger.js'
@@ -38,7 +34,15 @@ class MongoManager {
       
 console.log("loading",{mongoUrl,mongoDb,mongoCollection})
 
-      this.client = new MongoClient(mongoUrl)
+      // Add connection timeout to prevent hanging in Cloud Run
+      const connectionTimeout = parseInt(process.env.MONGODB_TIMEOUT || '10000', 10); // 10 seconds default
+      this.client = new MongoClient(mongoUrl, {
+        connectTimeoutMS: connectionTimeout,
+        serverSelectionTimeoutMS: connectionTimeout,
+        socketTimeoutMS: connectionTimeout
+      });
+      
+      Logger.info(`🔄 Connecting to MongoDB with ${connectionTimeout}ms timeout...`);
       await this.client.connect()
       this.db = this.client.db(mongoDb)
       this.collection = this.db.collection(mongoCollection)

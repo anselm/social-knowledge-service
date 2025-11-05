@@ -14,7 +14,7 @@
 
     "clean": "rm -rf packages/*/dist packages/*/dist-* packages/*/*.tsbuildinfo packages/*/tsconfig.tsbuildinfo node_modules/.cache",
 
-    "dev": "npm run build:dev && npm run seed:root && npm --prefix packages/server run dev",
+    "dev": "npm run build:dev && npm --prefix packages/server run dev",
     "dev:web": "WEB_PKG=${WEB_PACKAGE:-web}; if [ -d \"packages/$WEB_PKG\" ]; then npm --prefix packages/$WEB_PKG run dev; else echo \"Error: Web package 'packages/$WEB_PKG' not found. Set WEB_PACKAGE environment variable or create packages/web.\" && exit 1; fi",
     "dev:both": "npm run build && (npm --prefix packages/server run dev & npm run dev:web)",
 
@@ -26,12 +26,11 @@
     "seed:berkeley": "npm --prefix packages/knowledge run seed:berkeley",
     "seed:all": "npm --prefix packages/knowledge run seed:all",
 
-    "docker:build":  "docker compose build",
-    "docker:up":     "docker compose build && docker compose up -d",
-    "docker:down":   "docker compose down",
-    "docker:logs":   "docker compose logs -f",
+    "docker:build":  "cd docker && docker compose build",
+    "docker:up":     "cd docker && docker compose build && docker compose up -d",
+    "docker:down":   "cd docker && docker compose down",
+    "docker:logs":   "cd docker && docker compose logs -f",
     "docker:deploy": "chmod +x scripts/deploy-docker-compose.sh && ./scripts/deploy-docker-compose.sh",
-
     "gcloud:run":    "chmod +x scripts/deploy-gcloud-run.sh && ./scripts/deploy-gcloud-run.sh"
 
   },

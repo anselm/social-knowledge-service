@@ -1,0 +1,61 @@
+
+.aider*
+
+# Dependencies
+node_modules
+*/node_modules
+**/node_modules
+
+# Build outputs
+dist
+*/dist
+**/dist
+build
+*/build
+
+# Development files
+.env
+.env.*
+*.log
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+ecosystem.config.js
+
+# Documentation
+README.md
+docs
+
+# Tests
+*.test.js
+*.spec.js
+test
+tests
+__tests__
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Misc
+coverage
+.nyc_output

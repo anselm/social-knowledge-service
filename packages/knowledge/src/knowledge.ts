@@ -1,3 +1,15 @@
+// Load environment variables from .env file in monorepo root
+// Current path: packages/knowledge/src/knowledge.ts
+// Target path: .env (at monorepo root)
+// Need to go up: ../../.env
+// @todo concerned about this explicit path
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+
 import { Logger } from './logger.js'
 import { mongoManager } from './mongo-manager.js'
 import { relationshipManager } from './relationship-manager.js'

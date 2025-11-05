@@ -4,7 +4,7 @@
  */
 
 export async function postJSON<T>(url: string, body: unknown): Promise<T> {
-  const baseURL = import.meta.env.API_BASE_URL || '';
+  const baseURL = import.meta.env.VITE_API_BASE_URL || '';
   const fullURL = baseURL + url;
   
   // Get auth state from localStorage  
@@ -58,7 +58,7 @@ export async function postJSON<T>(url: string, body: unknown): Promise<T> {
 }
 
 export async function getJSON<T>(url: string): Promise<T> {
-  const baseURL = import.meta.env.API_BASE_URL || '';
+  const baseURL = import.meta.env.VITE_API_BASE_URL || '';
   const fullURL = baseURL + url;
   
   // Get auth state from localStorage

@@ -141,7 +141,9 @@ NODE_ENV=development
 MAGIC_SECRET_KEY=sk_live_...
 
 # Database
-MONGO_URL=mongodb://localhost:27017/social_knowledge_server
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_NAME=social-appliance
+MONGODB_COLLECTION=entities
 ```
 
 ### Docker Development

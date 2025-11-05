@@ -9,11 +9,11 @@ export function getMagic(): Magic {
   
   if (magic) return magic;
 
-  const publishableKey = import.meta.env.MAGIC_PUBLISHABLE_KEY;
+  const publishableKey = import.meta.env.VITE_MAGIC_PUBLISHABLE_KEY;
 
   if (!publishableKey) {
     throw new Error(
-      "MAGIC_PUBLISHABLE_KEY is not set. Please add it to your .env file."
+      "VITE_MAGIC_PUBLISHABLE_KEY is not set. Please add it to your .env file."
     );
   }  magic = new Magic(publishableKey, {
     extensions: [],

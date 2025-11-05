@@ -1,3 +1,12 @@
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Load environment variables from .env file in monorepo root
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+
 import { uuidv7 } from 'uuidv7'
 import { Logger } from './logger.js'
 import { Perms } from './perms.js'
@@ -23,21 +32,23 @@ class MongoManager {
       // Initialize schema manager first
       await schemaManager.initialize()
       
-      const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017'
-      const mongoDb = process.env.MONGO_DB || 'social_knowledge_server'
-      const mongoCollection = process.env.MONGO_COLLECTION || 'entities'
+      const mongoUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017'
+      const mongoDb = process.env.MONGODB_NAME || process.env.MONGODB_DB || 'social-appliance'
+      const mongoCollection = process.env.MONGODB_COLLECTION || 'entities'
       
+console.log("loading",{mongoUrl,mongoDb,mongoCollection})
+
       this.client = new MongoClient(mongoUrl)
       await this.client.connect()
       this.db = this.client.db(mongoDb)
       this.collection = this.db.collection(mongoCollection)
       
       // Check if we should flush the database
-      const shouldFlushDb = flushDb || process.env.FLUSH_DB === 'true' || process.env.FLUSH_DB === '1'
+      const shouldFlushDb = flushDb || process.env.MONGODB_FLUSH === 'true' || process.env.MONGODB_FLUSH === '1'
       
       if (shouldFlushDb) {
         const deleteResult = await this.collection.deleteMany({})
-        Logger.info(`🗑️  FLUSH_DB: Deleted ${deleteResult.deletedCount} documents from MongoDB collection`)
+        Logger.info(`🗑️  MONGODB_FLUSH: Deleted ${deleteResult.deletedCount} documents from MongoDB collection`)
       }
       
       // Create indexes for efficient lookups
@@ -62,7 +73,7 @@ class MongoManager {
       Logger.info(`🗄️  Connected to MongoDB: ${mongoUrl}/${mongoDb}/${mongoCollection}`)
       return this.connection
     } catch (error) {
-      Logger.error('Failed to connect to MongoDB:', error)
+      Logger.error('Failed to connect to MongoDB:', mongoUrl, error)
       throw error
     }
   }

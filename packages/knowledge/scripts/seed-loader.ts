@@ -12,13 +12,17 @@
  *   npm run seed:load berkeley --force   # Force reload even if exists
  */
 
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Knowledge } from '../src/index.js';
 
+// Load environment variables from .env file in monorepo root
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+import { Knowledge } from '../src/index.js';
 
 interface SeedOptions {
   force?: boolean;

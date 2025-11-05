@@ -2,7 +2,7 @@ import pino from 'pino'
 
 // Create base pino logger instance
 const baseLogger = pino({
-  level: import.meta.env.DEV ? 'debug' : 'warn',
+  level: import.meta.env.VITE_DEV ? 'debug' : 'warn',
   base: null, // Remove default fields like pid, hostname
   timestamp: () => `,"time":"${new Date().toISOString()}"`,
   browser: {

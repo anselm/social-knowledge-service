@@ -127,7 +127,7 @@
     try {
       const magic = getMagic();
 
-      if (!import.meta.env.MAGIC_PUBLISHABLE_KEY) {
+      if (!import.meta.env.VITE_MAGIC_PUBLISHABLE_KEY) {
         throw new Error("Magic.link is not configured. Please set MAGIC_PUBLISHABLE_KEY.");
       }
 

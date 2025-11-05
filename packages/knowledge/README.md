@@ -1,8 +1,8 @@
-# Social Knowledge Server
+# Social Knowledge Service 
 
 ## About
 
-Entity management library with JSON schema validation for social artifacts (posts, people, places, things, collections). Supports SIWE authentication and MongoDB storage.
+A pure entity management library with JSON schema validation for social artifacts (posts, people, places, things, collections). Supports SIWE authentication and MongoDB storage.
 
 Refer to the ongoing thoughts around [DESIGN](DESIGN.md) here.
 
@@ -14,15 +14,43 @@ Refer to the ongoing thoughts around [DESIGN](DESIGN.md) here.
 - **Spatial Queries** - GeoJSON Point auto-generation and MongoDB 2dsphere indexing
 - **Temporal Queries** - Time range queries with automatic date parsing
 - **Pagination** - Built-in limit/offset support for large result sets
+- **SIWE** - Authentication using Sign in with Ethereum or Magic.link
+- **Serverless** - A pure library used by a separate server
 
 ## Configuration
 
-### Environment Variables
+Environment variables are loaded from the monorepo root `.env` file. Key variables:
+- `MONGODB_URI` - MongoDB Atlas connection string 
+- `LOG_LEVEL` - Logging verbosity (trace, debug, info, warn, error)
 
-- `LOG_LEVEL` - Set logging level (debug, info, warn, error). Default: 'info'
-- `MONGO_URL` - MongoDB connection URL. Default: 'mongodb://localhost:27017'
-- `MONGO_DB` - Database name. Default: 'social_knowledge_server'
-- `FLUSH_DB` - Set to 'true' to clear database on startup
+## Seeding Data 🌱
+
+**Critical for development**: The Knowledge layer requires seed data to function properly. Always run seeding commands after fresh database setup.
+
+### Quick Start
+```bash
+# From Knowledge package directory
+npm run seed:root     # Create essential root entity (always run first)
+npm run seed:berkeley # Load Berkeley sample data (22 posts + relationships)
+
+# Or from monorepo root
+npm run seed:berkeley # Runs Knowledge seeding from any directory
+```
+
+### Available Seed Commands
+- `seed:root` - Creates the essential root entity (`/`) - **always run this first**
+- `seed:berkeley` - Loads sample Berkeley-area posts and relationships 
+- `seed:all` - Loads all available seed data
+- `seed:force` - Force reload even if data exists
+- `seed:stats` - Show database statistics after seeding
+
+### Why Seeding Matters
+- **Root entity required**: The `/` entity serves as the hierarchical root for all content
+- **Development data**: Provides realistic sample data for UI testing
+- **Relationship structure**: Demonstrates parent-child relationships and spatial data
+- **Atlas connection**: All seed commands now properly connect to MongoDB Atlas
+
+**Pro tip**: Run `npm run seed:berkeley` after any database reset to get a fully functional development environment.
 
 ## Testing
 

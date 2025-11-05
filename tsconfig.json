@@ -8,7 +8,7 @@
     { "path": "./packages/basic" },
     { "path": "./packages/knowledge" },
     { "path": "./packages/server" },
-    { "path": "./packages/web-fancy" }
+    { "path": "./packages/web" }
   ],
   "files": []
 }

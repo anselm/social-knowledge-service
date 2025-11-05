@@ -5,7 +5,9 @@ window.APP_CONFIG = {
   header: {
 
     // title? thevibe, thedirt, hyperlocal, locavore? still exploring
-    title: 'Portland Places',
+    // agora, hub, meeting ground, grounded, real world, outside world
+    // know your place
+    title: 'Lively',
 
     // Whether to show the header
     enabled: true,

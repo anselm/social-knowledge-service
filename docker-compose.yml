@@ -18,9 +18,9 @@ services:
     environment:
       - PORT=8080
       - HOST=0.0.0.0
-      - MONGO_URL=mongodb://mongo:27017
-      - MONGO_DB=social_knowledge_server
-      - MONGO_COLLECTION=entities
+      - MONGODB_URI=mongodb://mongo:27017
+      - MONGODB_DB=social-appliance
+      - MONGODB_COLLECTION=entities
     ports:
       - "8080:8080"
     depends_on:

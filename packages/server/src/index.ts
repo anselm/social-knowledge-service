@@ -1,22 +1,29 @@
+// Load environment variables from .env file in monorepo root
+// Current path: packages/server/src/index.ts (or when compiled: packages/server/dist/index.js)
+// Target path: .env (at monorepo root)
+// Need to go up: ../../../.env (from dist) or ../../.env (from src)
+// @todo concerned about this explicit path
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+// Use different paths for compiled vs source
+const envPath = __filename.includes('/dist/') 
+  ? path.resolve(__dirname, '../../../.env')  // compiled: dist/index.js
+  : path.resolve(__dirname, '../../.env')     // source: src/index.ts
+dotenv.config({ path: envPath })
+
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyCors from "@fastify/cors";
 import { Logger } from "./logger.js";
 import { Knowledge } from "../../knowledge/dist/knowledge.js";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import dotenv from "dotenv";
 import { registerRoutes } from "./httpRoutes.js";
 import { registerGraphQL } from "./graphql.js";
 import { registerAuthRoutes } from "./authRoutes.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load environment variables from .env file in monorepo root
-// @todo i'm a little concerned by this explicit path out of the monorepo
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+import fs from "fs";
 
 export async function createServer() {
   const isDev = process.env.NODE_ENV === "development";
@@ -85,10 +92,15 @@ export async function createServer() {
 
 export async function startServer() {
   try {
+
+    console.log("server error level and url is ",process.env.LOG_LEVEL,process.env.MONGODB_URI)
+
     const server = await createServer();
     const port = parseInt(process.env.PORT || "8080", 10);
     const host = process.env.HOST || "0.0.0.0";
-    
+
+    console.log("starting ",port,host)
+
     await server.listen({ port, host });
     Logger.info(`🚀 Server running at http://${host}:${port}`);
     Logger.info(`📱 Svelte app available at http://${host}:${port}`);

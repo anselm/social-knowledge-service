@@ -1,9 +1,13 @@
-import { Knowledge } from '../dist/knowledge.js';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Load environment variables from .env file in monorepo root
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+import { Knowledge } from '../dist/knowledge.js';
 
 async function createRootEntity() {
   try {

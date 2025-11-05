@@ -8,21 +8,23 @@ async function initMongo(bus) {
   if (bus._database_bindings?.mongo) return bus._database_bindings.mongo // Already initialized
   
   try {
-    const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017'
-    const mongoDb = process.env.MONGO_DB || 'social_knowledge_server'
-    const mongoCollection = process.env.MONGO_COLLECTION || 'entities'
+    const mongoUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017'
+    const mongoDb = process.env.MONGODB_NAME || 'social-appliance'
+    const mongoCollection = process.env.MONGODB_COLLECTION || 'entities'
     
+	Logger.info("Connecting to mongo",{mongoUrl, mongoDb, mongoCollection})
+
     const client = new MongoClient(mongoUrl)
     await client.connect()
     const db = client.db(mongoDb)
     const collection = db.collection(mongoCollection)
     
     // Check if we should flush the database
-    const shouldFlushDb = process.env.FLUSH_DB === 'true' || process.env.FLUSH_DB === '1'
+    const shouldFlushDb = process.env.MONGODB_FLUSH === 'true' || process.env.MONGODB_FLUSH === '1'
     
     if (shouldFlushDb) {
       const deleteResult = await collection.deleteMany({})
-      Logger.info(`🗑️  FLUSH_DB: Deleted ${deleteResult.deletedCount} documents from MongoDB collection`)
+      Logger.info(`🗑️  MONGODB_FLUSH: Deleted ${deleteResult.deletedCount} documents from MongoDB collection`)
     }
     
     // Create index for efficient lookups
@@ -38,6 +40,7 @@ async function initMongo(bus) {
     Logger.info(`🗄️ Connected to MongoDB: ${mongoUrl}/${mongoDb}/${mongoCollection}`)
     return bus._database_bindings.mongo
   } catch (error) {
+	console.error('Failed to connect to mongo',error)
     Logger.error('Failed to connect to MongoDB:', error)
     throw error
   }

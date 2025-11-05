@@ -1,8 +1,21 @@
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import pino from 'pino'
+
+// Load environment variables from .env file in monorepo root
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const envPath = path.resolve(__dirname, '../../../.env')
+console.log('Server logger: Loading .env from:', envPath)
+const dotenvResult = dotenv.config({ path: envPath })
+console.log('Server logger: dotenv result:', dotenvResult.error ? 'ERROR: ' + dotenvResult.error.message : 'SUCCESS')
+
+console.log("pino log level is",process.env.LOG_LEVEL)
 
 // Create base pino logger instance with appropriate configuration
 const baseLogger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || 'debug',
   base: null, // Remove default fields like pid, hostname
   timestamp: () => `,"time":"${new Date().toISOString()}"`,
   formatters: {

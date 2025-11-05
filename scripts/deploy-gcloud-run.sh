@@ -134,8 +134,8 @@ gcloud run deploy ${SERVICE_NAME} \
     --cpu=1 \
     --min-instances=0 \
     --max-instances=10 \
-    --set-env-vars="NODE_ENV=production,MONGODB_URI=${MONGODB_URI},MONGODB_NAME=${MONGODB_NAME:-social-appliance},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-}" \
-    --timeout=300
+    --timeout=300 \
+    --set-env-vars="NODE_ENV=development,LOG_LEVEL=${LOG_LEVEL:-info},MONGODB_URI=${MONGODB_URI},MONGODB_NAME=${MONGODB_NAME:-social-appliance},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-}"
 
 # Get service URL
 echo -e "${GREEN}Step 7: Getting service URL...${NC}"
